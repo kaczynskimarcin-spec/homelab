@@ -1,0 +1,53 @@
+=== HOMELAB SYSTEM INVENTORY ===
+Generated: Sat Sep 12 09:45:39 PM UTC 2026
+
+=== SYSTEM ===
+ Static hostname: homelab
+       Icon name: computer-vm
+         Chassis: vm 🖴
+      Machine ID: ba40d9478e2c4f24b936d42a8d7cbfe1
+         Boot ID: 8e54845e47fe49a18417565cc2e49525
+  Virtualization: oracle
+Operating System: Ubuntu 26.04.1 LTS
+          Kernel: Linux 7.0.0-31-generic
+    Architecture: x86-64
+ Hardware Vendor: innotek GmbH
+  Hardware Model: VirtualBox
+Hardware Version: 1.2
+Firmware Version: VirtualBox
+   Firmware Date: Fri 2006-12-01
+    Firmware Age: 19y 9month 1w 5d
+
+=== KERNEL ===
+7.0.0-31-generic
+
+=== CPU ===
+CPU(s):                                  2
+Model name:                              AMD Ryzen 5 2600 Six-Core Processor
+NUMA node0 CPU(s):                       0,1
+
+=== MEMORY ===
+               total        used        free      shared  buff/cache   available
+Mem:           3.3Gi       497Mi       2.3Gi       1.0Mi       826Mi       2.8Gi
+Swap:             0B          0B          0B
+
+=== STORAGE ===
+NAME    SIZE FSTYPE   MOUNTPOINTS
+loop0  66.8M squashfs /snap/core24/1643
+loop1  50.1M squashfs /snap/snapd/27710
+loop2   1.5M squashfs /snap/hwctl/123
+sda      30G          
+├─sda1    1M          
+└─sda2   30G ext4     /
+sr0    50.9M iso9660  
+
+=== NETWORK ===
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s3           UP             10.0.2.15/24 metric 100 fd17:625c:f037:2:a00:27ff:fe6f:badb/64 fe80::a00:27ff:fe6f:badb/64 
+
+=== ROUTES ===
+default via 10.0.2.2 dev enp0s3 proto dhcp src 10.0.2.15 metric 100 
+10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 100 
+10.0.2.2 dev enp0s3 proto dhcp scope link src 10.0.2.15 metric 100 
+193.47.158.254 via 10.0.2.2 dev enp0s3 proto dhcp src 10.0.2.15 metric 100 
+193.47.158.255 via 10.0.2.2 dev enp0s3 proto dhcp src 10.0.2.15 metric 100 
