@@ -1,0 +1,8 @@
+services:
+  web:
+    image: nginx:latest
+    container_name: homelab-web
+    ports:
+      - "8082:80"
+    volumes:
+      - ../../web:/usr/share/nginx/html:ro
