@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOME LAB</title>
+
+    <style>
+        :root {
+            --bg: #071018;
+            --panel: #0c1721;
+            --line: #1c3040;
+            --text: #e8f1f5;
+            --muted: #7e96a6;
+            --accent: #62e6b2;
+            --accent2: #66a7ff;
+            --danger: #ff6b7a;
+            --shadow: 0 20px 70px rgba(0, 0, 0, .35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+
+            background:
+                    radial-gradient(circle at 15% 0%, #13283a 0, transparent 34%),
+                    radial-gradient(circle at 90% 10%, #102c2a 0, transparent 30%),
+                    var(--bg);
+
+            color: var(--text);
+
+            font-family:
+                    Inter,
+                    ui-sans-serif,
+                    system-ui,
+                    -apple-system,
+                    Segoe UI,
+                    Roboto,
+                    sans-serif;
+
+            min-height: 100vh;
+        }
+
+        main {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 36px 24px 60px;
+        }
+
+        /* HEADER */
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            letter-spacing: .18em;
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .title {
+            font-size: 46px;
+            line-height: 1;
+            margin: 7px 0 10px;
+        }
+
+        .sub {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .clock {
+            font-variant-numeric: tabular-nums;
+            color: #c7d8e2;
+            font-size: 13px;
+        }
+
+        /* GRID */
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.35fr .85fr;
+            gap: 16px;
+        }
+
+        .card {
+            background: rgba(12, 23, 33, .78);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .pad {
+            padding: 20px;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .section-title h2 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            margin: 0;
+        }
+
+        .badge {
+            border: 1px solid #265d4d;
+            color: var(--accent);
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-size: 11px;
+        }
+
+        /* SYSTEM */
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .metric {
+            padding: 15px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: #09131c;
+        }
+
+        .metric small {
+            display: block;
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+        }
+
+        .metric strong {
+            display: block;
+            font-size: 27px;
+            margin-top: 4px;
+        }
+
+        .bar {
+            height: 5px;
+            background: #13232e;
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .bar span {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--accent2), var(--accent));
+            border-radius: 99px;
+            transition: width .5s ease;
+        }
+
+        .server-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        /* TASK CREATE */
+
+        .task-create {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 9px;
+            margin-bottom: 14px;
+        }
+
+        .task-create input {
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            background: #09131c;
+            color: var(--text);
+            padding: 12px 13px;
+            outline: none;
+            font: inherit;
+            font-size: 13px;
+        }
+
+        .task-create input:focus {
+            border-color: #356076;
+        }
+
+        .task-create input::placeholder {
+            color: #506878;
+        }
+
+        .add-button {
+            border: 1px solid #28614f;
+            background: #102b25;
+            color: var(--accent);
+            border-radius: 11px;
+            padding: 0 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .add-button:hover {
+            background: #163a31;
+            transform: translateY(-1px);
+        }
+
+        /* TASKS */
+
+        .tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .task {
+            display: grid;
+            grid-template-columns: 10px 1fr auto auto auto;
+            gap: 10px;
+            align-items: center;
+            padding: 11px 12px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #09131c;
+            transition: .2s;
+        }
+
+        .task:hover {
+            transform: translateY(-1px);
+            border-color: #315269;
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 14px rgba(98, 230, 178, .55);
+        }
+
+        .task.done {
+            opacity: .58;
+        }
+
+        .task.done .name {
+            text-decoration: line-through;
+        }
+
+        .task .name {
+            font-size: 14px;
+        }
+
+        .task .id {
+            color: #5f7788;
+            font-size: 11px;
+        }
+
+        .task-button {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: #0d1a24;
+            color: #8da3b3;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .complete-button:hover {
+            color: var(--accent);
+            border-color: #29614f;
+        }
+
+        .delete-button:hover {
+            color: var(--danger);
+            border-color: #62313a;
+            background: #2a1218;
+        }
+
+        /* SERVICES */
+
+        .services {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .svc {
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #09131c;
+        }
+
+        .svc-top {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .svc b {
+            font-size: 13px;
+        }
+
+        .online {
+            color: var(--accent);
+            font-size: 11px;
+        }
+
+        .offline {
+            color: var(--danger);
+            font-size: 11px;
+        }
+
+        .svc p {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* CORE */
+
+        .vision {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .orb {
+            width: 170px;
+            height: 170px;
+            margin: 18px auto;
+            border-radius: 50%;
+
+            background:
+                    radial-gradient(
+                            circle at 35% 30%,
+                            #d8fff0 0,
+                            #62e6b2 9%,
+                            #1d7e66 25%,
+                            #0c2b28 58%,
+                            #071018 73%
+                    );
+
+            box-shadow:
+                    0 0 90px rgba(98, 230, 178, .20),
+                    inset -18px -18px 40px rgba(0, 0, 0, .45);
+
+            position: relative;
+        }
+
+        .orb:after {
+            content: "";
+            position: absolute;
+            inset: 18%;
+            border: 1px solid rgba(216, 255, 240, .25);
+            border-radius: 50%;
+        }
+
+        .quote {
+            font-size: 20px;
+            line-height: 1.35;
+            text-align: center;
+            margin: 4px 16px 16px;
+        }
+
+        .muted {
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* FOOTER */
+
+        .footer {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            color: #547080;
+            font-size: 11px;
+        }
+
+        .pulse {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin-right: 6px;
+            box-shadow: 0 0 8px rgba(98, 230, 178, .6);
+        }
+
+        @media(max-width: 840px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .top {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .title {
+                font-size: 38px;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+<main>
+
+    <div class="top">
+
+        <div>
+            <div class="eyebrow">
+                PERSONAL INFRASTRUCTURE
+            </div>
+
+            <div class="title">
+                HOME LAB
+            </div>
+
+            <div class="sub">
+                Twój prywatny pulpit. System, projekty i przyszły osobisty AI.
+            </div>
+        </div>
+
+        <div class="clock" id="clock">
+            --:--:--
+        </div>
+
+    </div>
+
+
+    <div class="grid">
+
+        <!-- SYSTEM -->
+
+        <section class="card pad">
+
+            <div class="section-title">
+
+                <h2>System</h2>
+
+                <span class="badge" id="system-status">
+                    <span class="pulse"></span>
+                    CONNECTING
+                </span>
+
+            </div>
+
+
+            <div class="metrics">
+
+                <div class="metric">
+
+                    <small>CPU</small>
+
+                    <strong id="cpu-value">
+                        --%
+                    </strong>
+
+                    <div class="bar">
+                        <span id="cpu-bar"></span>
+                    </div>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <small>RAM</small>
+
+                    <strong id="ram-value">
+                        --%
+                    </strong>
+
+                    <div class="bar">
+                        <span id="ram-bar"></span>
+                    </div>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <small>DISK</small>
+
+                    <strong id="disk-value">
+                        --%
+                    </strong>
+
+                    <div class="bar">
+                        <span id="disk-bar"></span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="server-info">
+
+                <span>
+                    HOST:
+                    <strong id="hostname">
+                        ---
+                    </strong>
+                </span>
+
+                <span>
+                    UPTIME:
+                    <strong id="uptime">
+                        ---
+                    </strong>
+                </span>
+
+            </div>
+
+        </section>
+
+
+        <!-- CORE -->
+
+        <section class="card pad vision">
+
+            <div class="section-title">
+
+                <h2>Core</h2>
+
+                <span class="badge">
+                    LOCAL
+                </span>
+
+            </div>
+
+            <div>
+
+                <div class="orb"></div>
+
+                <div class="quote">
+                    „Najpierw rozumiem system.
+                    Potem go automatyzuję.”
+                </div>
+
+                <div class="muted">
+                    miejsce na przyszłe AI /
+                    pamięć / wiedzę
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- TASKS -->
+
+        <section class="card pad">
+
+            <div class="section-title">
+
+                <h2>Tasks</h2>
+
+                <span
+                        class="badge"
+                        id="task-count">
+
+                    ŁADOWANIE
+
+                </span>
+
+            </div>
+
+
+            <div class="task-create">
+
+                <input
+                        id="new-task-title"
+                        type="text"
+                        placeholder="Nowy task...">
+
+                <button
+                        class="add-button"
+                        onclick="createTask()">
+
+                    + ADD
+
+                </button>
+
+            </div>
+
+
+            <div
+                    class="tasks"
+                    id="tasks-container">
+
+                <div class="muted">
+                    Pobieram taski...
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SERVICES -->
+
+        <section class="card pad">
+
+            <div class="section-title">
+
+                <h2>Services</h2>
+
+                <span class="badge">
+                    INFRASTRUCTURE
+                </span>
+
+            </div>
+
+
+            <div class="services">
+
+                <div class="svc">
+
+                    <div class="svc-top">
+
+                        <b>Spring Boot</b>
+
+                        <span class="online">
+                            ● LIVE
+                        </span>
+
+                    </div>
+
+                    <p>
+                        API · :8080
+                    </p>
+
+                </div>
+
+
+                <div class="svc">
+
+                    <div class="svc-top">
+
+                        <b>PostgreSQL</b>
+
+                        <span class="online">
+                            ● LIVE
+                        </span>
+
+                    </div>
+
+                    <p>
+                        database
+                    </p>
+
+                </div>
+
+
+                <div class="svc">
+
+                    <div class="svc-top">
+
+                        <b>Ubuntu</b>
+
+                        <span
+                                class="online"
+                                id="ubuntu-service">
+
+                            ● LIVE
+
+                        </span>
+
+                    </div>
+
+                    <p>
+                        homelab server
+                    </p>
+
+                </div>
+
+
+                <div class="svc">
+
+                    <div class="svc-top">
+
+                        <b>System Agent</b>
+
+                        <span
+                                class="online"
+                                id="agent-service">
+
+                            ● LIVE
+
+                        </span>
+
+                    </div>
+
+                    <p>
+                        localhost:9001
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <div class="footer">
+
+        <span>
+            HOME LAB · v0.4
+        </span>
+
+        <span>
+            real infrastructure data
+        </span>
+
+    </div>
+
+</main>
+
+
+<script>
+
+    /* =========================
+       CLOCK
+    ========================== */
+
+    function tick() {
+
+        document.getElementById("clock").textContent =
+            new Date().toLocaleTimeString("pl-PL");
+
+    }
+
+    tick();
+
+    setInterval(tick, 1000);
+
+
+
+    /* =========================
+       SYSTEM AGENT
+    ========================== */
+
+    async function loadSystemStats() {
+
+        try {
+
+            const response =
+                await fetch(
+                    "http://127.0.0.1:9001/system"
+                );
+
+            if (!response.ok) {
+                throw new Error(
+                    "HTTP " + response.status
+                );
+            }
+
+            const system =
+                await response.json();
+
+
+            /* VALUES */
+
+            document.getElementById(
+                "cpu-value"
+            ).textContent =
+                system.cpu + "%";
+
+
+            document.getElementById(
+                "ram-value"
+            ).textContent =
+                system.ram + "%";
+
+
+            document.getElementById(
+                "disk-value"
+            ).textContent =
+                system.disk + "%";
+
+
+            /* BARS */
+
+            document.getElementById(
+                "cpu-bar"
+            ).style.width =
+                system.cpu + "%";
+
+
+            document.getElementById(
+                "ram-bar"
+            ).style.width =
+                system.ram + "%";
+
+
+            document.getElementById(
+                "disk-bar"
+            ).style.width =
+                system.disk + "%";
+
+
+            /* HOSTNAME */
+
+            document.getElementById(
+                "hostname"
+            ).textContent =
+                system.hostname;
+
+
+            /* UPTIME */
+
+            document.getElementById(
+                "uptime"
+            ).textContent =
+                formatUptime(
+                    system.uptimeSeconds
+                );
+
+
+            /* ONLINE */
+
+            document.getElementById(
+                "system-status"
+            ).innerHTML =
+                '<span class="pulse"></span> ONLINE';
+
+
+            document.getElementById(
+                "agent-service"
+            ).textContent =
+                "● LIVE";
+
+
+            document.getElementById(
+                "agent-service"
+            ).className =
+                "online";
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "SYSTEM AGENT ERROR:",
+                error
+            );
+
+
+            document.getElementById(
+                "system-status"
+            ).textContent =
+                "OFFLINE";
+
+
+            document.getElementById(
+                "agent-service"
+            ).textContent =
+                "● OFFLINE";
+
+
+            document.getElementById(
+                "agent-service"
+            ).className =
+                "offline";
+
+        }
+
+    }
+
+
+
+    function formatUptime(seconds) {
+
+        const hours =
+            Math.floor(
+                seconds / 3600
+            );
+
+        const minutes =
+            Math.floor(
+                (seconds % 3600) / 60
+            );
+
+        if (hours >= 24) {
+
+            const days =
+                Math.floor(
+                    hours / 24
+                );
+
+            const remainingHours =
+                hours % 24;
+
+            return (
+                days +
+                "d " +
+                remainingHours +
+                "h"
+            );
+
+        }
+
+        return (
+            hours +
+            "h " +
+            minutes +
+            "m"
+        );
+
+    }
+
+
+
+    /* =========================
+       TASKS
+    ========================== */
+
+    async function loadTasks() {
+
+        const container =
+            document.getElementById(
+                "tasks-container"
+            );
+
+        const counter =
+            document.getElementById(
+                "task-count"
+            );
+
+
+        try {
+
+            const response =
+                await fetch("/tasks");
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP " +
+                    response.status
+                );
+
+            }
+
+
+            const tasks =
+                await response.json();
+
+
+            tasks.sort(
+                (a, b) =>
+                    Number(a.completed)
+                    -
+                    Number(b.completed)
+            );
+
+
+            container.innerHTML =
+                "";
+
+
+            const activeTasks =
+                tasks.filter(
+                    task =>
+                        !task.completed
+                );
+
+
+            counter.textContent =
+                `${activeTasks.length} ACTIVE`;
+
+
+            if (tasks.length === 0) {
+
+                container.innerHTML = `
+                    <div class="muted">
+                        Brak tasków.
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            tasks.forEach(
+                task => {
+
+
+                    const row =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    row.className =
+                        task.completed
+                            ? "task done"
+                            : "task";
+
+
+                    const dot =
+                        document.createElement(
+                            "span"
+                        );
+
+                    dot.className =
+                        "dot";
+
+
+                    const name =
+                        document.createElement(
+                            "span"
+                        );
+
+                    name.className =
+                        "name";
+
+                    name.textContent =
+                        task.title;
+
+
+                    const id =
+                        document.createElement(
+                            "span"
+                        );
+
+                    id.className =
+                        "id";
+
+                    id.textContent =
+                        "#" +
+                        task.id;
+
+
+                    const complete =
+                        document.createElement(
+                            "button"
+                        );
+
+                    complete.className =
+                        "task-button complete-button";
+
+                    complete.textContent =
+                        task.completed
+                            ? "↺"
+                            : "✓";
+
+
+                    complete.onclick =
+                        () =>
+                            toggleTask(
+                                task
+                            );
+
+
+                    const remove =
+                        document.createElement(
+                            "button"
+                        );
+
+                    remove.className =
+                        "task-button delete-button";
+
+                    remove.textContent =
+                        "×";
+
+
+                    remove.onclick =
+                        () =>
+                            deleteTask(
+                                task.id
+                            );
+
+
+                    row.appendChild(dot);
+                    row.appendChild(name);
+                    row.appendChild(id);
+                    row.appendChild(complete);
+                    row.appendChild(remove);
+
+
+                    container.appendChild(
+                        row
+                    );
+
+                }
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "TASK API ERROR:",
+                error
+            );
+
+            counter.textContent =
+                "API OFFLINE";
+
+        }
+
+    }
+
+
+
+    /* =========================
+       CREATE TASK
+    ========================== */
+
+    async function createTask() {
+
+        const input =
+            document.getElementById(
+                "new-task-title"
+            );
+
+        const title =
+            input.value.trim();
+
+
+        if (!title) {
+            return;
+        }
+
+
+        const response =
+            await fetch(
+                "/tasks",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            title: title
+                        })
+                }
+            );
+
+
+        if (response.ok) {
+
+            input.value =
+                "";
+
+            await loadTasks();
+
+        }
+
+    }
+
+
+
+    /* =========================
+       TOGGLE TASK
+    ========================== */
+
+    async function toggleTask(task) {
+
+        const response =
+            await fetch(
+                `/tasks/${task.id}`,
+                {
+                    method:
+                        "PUT",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            title:
+                            task.title,
+
+                            completed:
+                                !task.completed
+                        })
+                }
+            );
+
+
+        if (response.ok) {
+
+            await loadTasks();
+
+        }
+
+    }
+
+
+
+    /* =========================
+       DELETE TASK
+    ========================== */
+
+    async function deleteTask(id) {
+
+        const response =
+            await fetch(
+                `/tasks/${id}`,
+                {
+                    method:
+                        "DELETE"
+                }
+            );
+
+
+        if (response.ok) {
+
+            await loadTasks();
+
+        }
+
+    }
+
+
+
+    /* ENTER CREATES TASK */
+
+    document
+        .getElementById(
+            "new-task-title"
+        )
+        .addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
+
+                    createTask();
+
+                }
+
+            }
+        );
+
+
+
+    /* =========================
+       START
+    ========================== */
+
+    loadTasks();
+
+    loadSystemStats();
+
+
+    /*
+     * Ubuntu refresh
+     * every 3 seconds
+     */
+
+    setInterval(
+        loadSystemStats,
+        3000
+    );
+
+</script>
+
+</body>
+
+</html>
