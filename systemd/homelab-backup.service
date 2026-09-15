@@ -1,0 +1,10 @@
+[Unit]
+Description=Backup bazy PostgreSQL HomeLab
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/local/sbin/homelab-backup-postgres
+TimeoutStartSec=15min

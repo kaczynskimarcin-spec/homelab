@@ -1,0 +1,10 @@
+[Unit]
+Description=Codzienny backup PostgreSQL HomeLab
+
+[Timer]
+OnCalendar=*-*-* 18:00:00 UTC
+Persistent=true
+Unit=homelab-backup.service
+
+[Install]
+WantedBy=timers.target
