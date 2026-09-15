@@ -1,0 +1,15 @@
+[Unit]
+Description=HomeLab system metrics
+After=network.target
+
+[Service]
+Type=simple
+User=m
+WorkingDirectory=/home/m/homelab/system-agent
+ExecStart=/usr/bin/python3 -u /home/m/homelab/system-agent/app.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
