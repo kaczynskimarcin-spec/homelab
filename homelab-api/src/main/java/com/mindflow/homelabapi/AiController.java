@@ -1,10 +1,7 @@
 package com.mindflow.homelabapi;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -12,9 +9,14 @@ import org.springframework.web.server.ResponseStatusException;
 public class AiController {
 
     private final OllamaService ollamaService;
+    private final ChatMessageRepository chatMessageRepository;
 
-    public AiController(OllamaService ollamaService) {
+    public AiController(
+            OllamaService ollamaService,
+            ChatMessageRepository chatMessageRepository) {
+
         this.ollamaService = ollamaService;
+        this.chatMessageRepository = chatMessageRepository;
     }
 
     @PostMapping("/chat")
@@ -27,7 +29,15 @@ public class AiController {
             );
         }
 
+        chatMessageRepository.save(
+                new ChatMessage("user", request.message())
+        );
+
         String response = ollamaService.chat(request.message());
+
+        chatMessageRepository.save(
+                new ChatMessage("assistant", response)
+        );
 
         return new ChatResponse(response);
     }
