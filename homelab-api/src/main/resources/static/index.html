@@ -504,6 +504,183 @@
             .task-create input { font-size: 16px; }
             .task:hover, .add-button:hover { transform: none; }
         }
+
+        /* HOME AI */
+
+        .ai-card {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-orb {
+            width: 105px;
+            height: 105px;
+            margin: 2px auto 14px;
+            transition: transform .3s ease, box-shadow .3s ease;
+            flex: 0 0 auto;
+        }
+
+        .ai-orb.thinking {
+            animation: aiPulse 1.4s infinite ease-in-out;
+        }
+
+        @keyframes aiPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow:
+                        0 0 70px rgba(98, 230, 178, .18),
+                        inset -18px -18px 40px rgba(0, 0, 0, .45);
+            }
+
+            50% {
+                transform: scale(1.055);
+                box-shadow:
+                        0 0 115px rgba(98, 230, 178, .42),
+                        inset -18px -18px 40px rgba(0, 0, 0, .45);
+            }
+        }
+
+        .ai-chat {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            min-height: 150px;
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 2px 2px 12px;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+        }
+
+        .ai-message {
+            max-width: 88%;
+            padding: 10px 12px;
+            border-radius: 13px;
+            font-size: 13px;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .ai-message.user {
+            align-self: flex-end;
+            background: #102b25;
+            border: 1px solid #28614f;
+            color: #dcfff1;
+        }
+
+        .ai-message.assistant {
+            align-self: flex-start;
+            background: #09131c;
+            border: 1px solid var(--line);
+            color: var(--text);
+        }
+
+        .ai-message.system {
+            align-self: center;
+            max-width: 100%;
+            color: var(--muted);
+            font-size: 11px;
+            padding: 4px;
+            text-align: center;
+        }
+
+        .ai-input-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 8px;
+            margin-top: auto;
+            padding-top: 10px;
+        }
+
+        .ai-input {
+            min-width: 0;
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            background: #09131c;
+            color: var(--text);
+            padding: 12px 13px;
+            outline: none;
+            font: inherit;
+            font-size: 13px;
+        }
+
+        .ai-input:focus {
+            border-color: #356076;
+        }
+
+        .ai-input::placeholder {
+            color: #506878;
+        }
+
+        .ai-send {
+            border: 1px solid #28614f;
+            background: #102b25;
+            color: var(--accent);
+            border-radius: 11px;
+            padding: 0 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .ai-send:hover {
+            background: #163a31;
+            transform: translateY(-1px);
+        }
+
+        .ai-send:disabled {
+            cursor: wait;
+            opacity: .5;
+            transform: none;
+        }
+
+        .ai-status {
+            font-size: 10px;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .ai-card {
+                min-height: auto;
+            }
+
+            .ai-orb {
+                width: 85px;
+                height: 85px;
+                margin: 2px auto 12px;
+            }
+
+            .ai-chat {
+                min-height: 180px;
+                max-height: 360px;
+            }
+
+            .ai-input {
+                font-size: 16px;
+                min-height: 46px;
+            }
+
+            .ai-send {
+                min-height: 46px;
+                padding: 0 14px;
+            }
+        }
+
+        @media (pointer: coarse) {
+            .ai-send {
+                min-height: 46px;
+            }
+
+            .ai-send:hover {
+                transform: none;
+            }
+        }
+
     </style>
 
 </head>
@@ -623,34 +800,51 @@
         </section>
 
 
-        <!-- CORE -->
+        <!-- HOME AI -->
 
-        <section class="card pad vision">
+        <section class="card pad ai-card">
 
             <div class="section-title">
 
-                <h2>Core</h2>
+                <h2>Home AI</h2>
 
-                <span class="badge">
+                <span class="badge" id="ai-badge">
+                    <span class="pulse"></span>
                     LOCAL
                 </span>
 
             </div>
 
-            <div>
+            <div class="orb ai-orb" id="ai-orb"></div>
 
-                <div class="orb"></div>
+            <div class="ai-chat" id="ai-chat">
 
-                <div class="quote">
-                    „Najpierw rozumiem system.
-                    Potem go automatyzuję.”
+                <div class="ai-message assistant">
+                    Home AI online. W czym mogę Ci pomóc?
                 </div>
 
-                <div class="muted">
-                    miejsce na przyszłe AI /
-                    pamięć / wiedzę
-                </div>
+            </div>
 
+            <div class="ai-input-row">
+
+                <input
+                        class="ai-input"
+                        id="ai-input"
+                        type="text"
+                        autocomplete="off"
+                        placeholder="Napisz wiadomość...">
+
+                <button
+                        class="ai-send"
+                        id="ai-send"
+                        type="button">
+                    SEND
+                </button>
+
+            </div>
+
+            <div class="ai-status" id="ai-status">
+                Qwen 3.5 4B · LOCAL
             </div>
 
         </section>
@@ -816,7 +1010,7 @@
     <div class="footer">
 
         <span>
-            HOME LAB · v0.4
+            HOME LAB · v0.5
         </span>
 
         <span>
@@ -1379,6 +1573,193 @@
         3000
     );
 
+</script>
+
+
+<script>
+    (() => {
+
+        const chat =
+            document.getElementById("ai-chat");
+
+        const input =
+            document.getElementById("ai-input");
+
+        const sendButton =
+            document.getElementById("ai-send");
+
+        const status =
+            document.getElementById("ai-status");
+
+        const orb =
+            document.getElementById("ai-orb");
+
+        const badge =
+            document.getElementById("ai-badge");
+
+
+        function addAiMessage(role, text) {
+
+            const message =
+                document.createElement("div");
+
+            message.className =
+                "ai-message " + role;
+
+            message.textContent =
+                text;
+
+            chat.appendChild(message);
+
+            chat.scrollTop =
+                chat.scrollHeight;
+
+            return message;
+        }
+
+
+        async function sendAiMessage() {
+
+            const message =
+                input.value.trim();
+
+            if (
+                !message ||
+                sendButton.disabled
+            ) {
+                return;
+            }
+
+            addAiMessage(
+                "user",
+                message
+            );
+
+            input.value = "";
+
+            sendButton.disabled = true;
+
+            status.textContent =
+                "HOME AI THINKING...";
+
+            badge.innerHTML =
+                '<span class="pulse"></span> THINKING';
+
+            orb.classList.add(
+                "thinking"
+            );
+
+            const thinkingMessage =
+                addAiMessage(
+                    "system",
+                    "Thinking..."
+                );
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/ai/chat",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    message: message
+                                })
+                        }
+                    );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "HTTP " +
+                        response.status
+                    );
+                }
+
+                const data =
+                    await response.json();
+
+                thinkingMessage.remove();
+
+                addAiMessage(
+                    "assistant",
+                    data.response ??
+                    "Brak odpowiedzi."
+                );
+
+                status.textContent =
+                    "Qwen 3.5 4B · LOCAL";
+
+                badge.innerHTML =
+                    '<span class="pulse"></span> LOCAL';
+
+            }
+            catch (error) {
+
+                thinkingMessage.remove();
+
+                addAiMessage(
+                    "system",
+                    "Błąd połączenia z Home AI."
+                );
+
+                status.textContent =
+                    "HOME AI OFFLINE";
+
+                badge.textContent =
+                    "OFFLINE";
+
+                console.error(
+                    "HOME AI ERROR:",
+                    error
+                );
+
+            }
+            finally {
+
+                sendButton.disabled =
+                    false;
+
+                orb.classList.remove(
+                    "thinking"
+                );
+
+                input.focus();
+            }
+
+        }
+
+
+        sendButton.addEventListener(
+            "click",
+            sendAiMessage
+        );
+
+
+        input.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Enter" &&
+                    !event.shiftKey
+                ) {
+
+                    event.preventDefault();
+
+                    sendAiMessage();
+                }
+
+            }
+        );
+
+    })();
 </script>
 
 </body>
