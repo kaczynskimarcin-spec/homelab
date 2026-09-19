@@ -1,27 +1,27 @@
 package com.mindflow.homelabapi;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 public class WebSearchService {
 
     private final RestClient restClient;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     public WebSearchService(
             @Value("${searxng.base-url:http://searxng:8080}")
             String searxngBaseUrl,
-            ObjectMapper objectMapper
+            JsonMapper jsonMapper
     ) {
         this.restClient = RestClient.builder()
                 .baseUrl(searxngBaseUrl)
                 .build();
 
-        this.objectMapper = objectMapper;
+        this.jsonMapper = jsonMapper;
     }
 
     public String search(String query) {
@@ -41,11 +41,11 @@ public class WebSearchService {
         }
 
         try {
-            JsonNode root = objectMapper.readTree(json);
+            JsonNode root = jsonMapper.readTree(json);
 
             JsonNode results = root.path("results");
 
-            if (!results.isArray() || results.isEmpty()) {
+            if (!results.isArray() || results.size() == 0) {
                 return "Brak wyników wyszukiwania.";
             }
 
@@ -58,13 +58,13 @@ public class WebSearchService {
                 JsonNode result = results.get(i);
 
                 String title =
-                        result.path("title").asText("");
+                        result.path("title").asString("");
 
                 String url =
-                        result.path("url").asText("");
+                        result.path("url").asString("");
 
                 String content =
-                        result.path("content").asText("");
+                        result.path("content").asString("");
 
                 output.append(i + 1)
                         .append(". ")
