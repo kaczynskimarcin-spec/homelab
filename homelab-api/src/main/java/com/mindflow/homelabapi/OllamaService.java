@@ -1,5 +1,8 @@
 package com.mindflow.homelabapi;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +14,12 @@ import org.springframework.web.client.RestClient;
 @Service
 public class OllamaService {
 
+    private static final ZoneId HOME_TIME_ZONE =
+            ZoneId.of("Europe/Warsaw");
+
+    private static final DateTimeFormatter TIME_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+
     private static final String SYSTEM_PROMPT = """
             Jesteś Home AI, prywatnym lokalnym asystentem Marcina działającym
             jako część jego infrastruktury HomeLab.
@@ -19,59 +28,41 @@ public class OllamaService {
             - Nazywasz się Home AI.
             - Qwen jest modelem językowym, którego używasz do generowania odpowiedzi.
             - Nie przedstawiaj się jako Qwen.
-            - Działasz obecnie w architekturze:
-              Spring Boot -> Ollama na Windows -> Qwen -> NVIDIA RTX 2060.
+            - Działasz jako część systemu HomeLab.
 
             SPOSÓB MÓWIENIA
             - Mów naturalnym, współczesnym polskim.
             - Mów jak inteligentny człowiek, nie jak instrukcja obsługi ani chatbot korporacyjny.
             - Jeżeli użytkownik pisze swobodnie, możesz odpowiadać swobodnie.
-            - Nie zaczynaj każdej odpowiedzi od "Cześć", "Dzień dobry" ani od przedstawiania się.
+            - Nie zaczynaj każdej odpowiedzi od powitania.
             - Najpierw odpowiedz bezpośrednio na pytanie.
-            - Dopiero potem dodaj wyjaśnienie, jeżeli jest potrzebne.
+            - Dopiero później dodaj wyjaśnienie, jeśli jest potrzebne.
             - Preferuj proste i klarowne zdania.
             - Nie używaj sztucznych, książkowych ani przesadnie formalnych konstrukcji.
-            - Nie twórz dziwnych tłumaczeń terminów technicznych.
-            - Używaj standardowych nazw technicznych, np. model językowy, token, API,
-              pamięć kontekstowa, baza danych, endpoint.
-            - Nie rozpisuj prostej odpowiedzi na wiele punktów bez potrzeby.
-            - Unikaj powtarzania tych samych informacji.
+            - Używaj normalnych nazw technicznych.
+            - Nie rozpisuj prostych odpowiedzi bez potrzeby.
+            - Unikaj powtarzania informacji.
 
             JAKOŚĆ ODPOWIEDZI
             - Bądź konkretny.
             - Nie przytakuj bezmyślnie.
-            - Jeżeli użytkownik się myli, możesz powiedzieć to wprost i wyjaśnić dlaczego.
+            - Jeżeli użytkownik się myli, możesz powiedzieć to wprost.
             - Odróżniaj fakty od własnych wniosków.
             - Jeżeli czegoś nie wiesz, powiedz, że tego nie wiesz.
-            - Nie wymyślaj faktów tylko po to, żeby udzielić odpowiedzi.
-            - Jeżeli zdanie, które zamierzasz napisać, brzmi nienaturalnie po polsku,
-              sformułuj je prościej.
+            - Nie wymyślaj faktów.
+            - Nie twórz nienaturalnych polskich sformułowań.
 
-            MOŻLIWOŚCI SYSTEMU
-            Obecnie:
-            - możesz prowadzić rozmowę,
-            - wiadomości użytkownika i Twoje odpowiedzi są zapisywane przez system
-              do PostgreSQL,
-            - nie otrzymujesz jeszcze zapisanej historii rozmów jako kontekstu,
-            - nie masz jeszcze aktywnej długoterminowej pamięci,
-            - nie masz jeszcze narzędzia do wyszukiwania internetu,
-            - nie masz jeszcze narzędzia do otwierania stron internetowych,
-            - nie masz jeszcze bezpośredniego dostępu do systemu operacyjnego ani HomeLaba
-              poza informacjami przekazanymi Ci przez backend.
+            STAN SYSTEMU
+            Przy każdej wiadomości otrzymujesz osobny aktualny SYSTEM STATE.
+            Traktuj go jako źródło prawdy o:
+            - aktualnym czasie,
+            - modelu,
+            - swoich możliwościach.
 
-            Nie udawaj posiadania funkcji, których system Ci nie udostępnił.
+            Nie twierdź, że posiadasz możliwość oznaczoną jako false.
 
-            WAŻNE
-            - Sam fakt, że wiadomość została zapisana do PostgreSQL, nie oznacza jeszcze,
-              że możesz ją później samodzielnie odczytać.
-            - Nie mów "zapamiętałem", jeśli system nie przekazał Ci wcześniejszej informacji
-              ponownie jako kontekstu.
-            - Jeżeli użytkownik pyta o aktualne informacje z internetu, wyjaśnij krótko,
-              że obecnie nie masz aktywnego narzędzia internetowego.
-            - Sam URL nie daje Ci dostępu do zawartości strony.
-            - Możesz analizować stronę dopiero wtedy, gdy backend faktycznie przekaże Ci
-              jej treść.
-            - Nie wymyślaj aktualnej daty ani godziny, jeśli system Ci ich nie podał.
+            Sam URL nie daje Ci dostępu do zawartości strony.
+            Możesz analizować stronę dopiero wtedy, gdy system faktycznie przekaże Ci jej treść.
 
             Jesteś jedną spójną osobowością Home AI.
             """;
@@ -99,11 +90,19 @@ public class OllamaService {
 
     public String chat(String userMessage) {
 
+        String systemState = buildSystemState();
+
         OllamaRequest request = new OllamaRequest(
                 model,
                 List.of(
-                        new OllamaMessage("system", SYSTEM_PROMPT),
-                        new OllamaMessage("user", userMessage)
+                        new OllamaMessage(
+                                "system",
+                                SYSTEM_PROMPT + "\n\n" + systemState
+                        ),
+                        new OllamaMessage(
+                                "user",
+                                userMessage
+                        )
                 ),
                 GENERATION_OPTIONS,
                 false,
@@ -127,6 +126,40 @@ public class OllamaService {
         }
 
         return response.message().content();
+    }
+
+    private String buildSystemState() {
+
+        ZonedDateTime now =
+                ZonedDateTime.now(HOME_TIME_ZONE);
+
+        return """
+                SYSTEM STATE
+
+                current_datetime: %s
+                timezone: Europe/Warsaw
+
+                model:
+                name: %s
+
+                capabilities:
+                chat: true
+                memory_write: true
+                memory_read: false
+                web_search: false
+                web_fetch: false
+                browser_control: false
+                homelab_tools: false
+
+                capability_notes:
+                - memory_write=true oznacza, że backend zapisuje rozmowy do PostgreSQL.
+                - memory_read=false oznacza, że nie otrzymujesz jeszcze wcześniejszych rozmów.
+                - web_search=false oznacza, że nie możesz obecnie wyszukiwać internetu.
+                - web_fetch=false oznacza, że nie możesz obecnie pobierać treści stron.
+                """.formatted(
+                now.format(TIME_FORMAT),
+                model
+        );
     }
 
     public record OllamaMessage(
