@@ -1,0 +1,13 @@
+use_default_settings: true
+
+general:
+  instance_name: "Home AI Search"
+
+search:
+  formats:
+    - html
+    - json
+
+server:
+  limiter: false
+  image_proxy: false
