@@ -3,6 +3,7 @@ package com.mindflow.homelabapi;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "chat_messages")
@@ -17,6 +18,9 @@ public class ChatMessage {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+
+    @Column(name = "conversation_id")
+    private UUID conversationId;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -48,5 +52,11 @@ public class ChatMessage {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+    public UUID getConversationId() {
+        return conversationId;
+    }
+    public void setConversationId(UUID conversationId) {
+        this.conversationId = conversationId;
     }
 }

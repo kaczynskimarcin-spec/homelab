@@ -2,7 +2,7 @@ package com.mindflow.homelabapi;
 
 import java.util.Collections;
 import java.util.List;
-
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,6 +33,14 @@ public class AiController {
                     "Message cannot be empty"
             );
         }
+        UUID conversationId = request.conversationId();
+
+        if (conversationId == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Conversation ID cannot be empty"
+            );
+        }
 
         /*
          * Pobieramy historię PRZED zapisaniem
@@ -43,8 +51,9 @@ public class AiController {
          */
         List<ChatMessage> history =
                 chatMessageRepository
-                        .findTop20ByOrderByIdDesc();
-
+                        .findTop20ByConversationIdOrderByIdDesc(
+                                conversationId
+                        );
         /*
          * Repository zwraca:
          * newest -> oldest
@@ -57,11 +66,18 @@ public class AiController {
         /*
          * Zapis aktualnej wiadomości.
          */
-        chatMessageRepository.save(
+        ChatMessage userMessage =
                 new ChatMessage(
                         "user",
                         request.message()
-                )
+                );
+
+        userMessage.setConversationId(
+                conversationId
+        );
+
+        chatMessageRepository.save(
+                userMessage
         );
 
         /*
@@ -77,18 +93,26 @@ public class AiController {
         /*
          * Zapis odpowiedzi AI.
          */
-        chatMessageRepository.save(
+        ChatMessage assistantMessage =
                 new ChatMessage(
                         "assistant",
                         response
-                )
+                );
+
+        assistantMessage.setConversationId(
+                conversationId
+        );
+
+        chatMessageRepository.save(
+                assistantMessage
         );
 
         return new ChatResponse(response);
     }
 
     public record ChatRequest(
-            String message
+            String message,
+            UUID conversationId
     ) {}
 
     public record ChatResponse(
