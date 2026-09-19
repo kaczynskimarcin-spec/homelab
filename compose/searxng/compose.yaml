@@ -12,4 +12,12 @@ services:
     volumes:
       - ./settings.yml:/etc/searxng/settings.yml:ro
 
+    networks:
+      - database
+
     restart: unless-stopped
+
+networks:
+  database:
+    external: true
+    name: postgres_default
