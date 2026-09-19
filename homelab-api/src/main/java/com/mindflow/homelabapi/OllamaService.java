@@ -3,6 +3,7 @@ package com.mindflow.homelabapi;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -52,8 +53,14 @@ public class OllamaService {
             - Nie wymyślaj faktów.
             - Nie twórz nienaturalnych polskich sformułowań.
 
+            PAMIĘĆ
+            - Możesz otrzymywać wcześniejsze wiadomości zapisane w PostgreSQL.
+            - Traktuj przekazaną historię jako wcześniejszy kontekst rozmowy.
+            - Nie twierdź, że pamiętasz informacje, których nie ma w przekazanej historii.
+            - Obecna pamięć rozmowy nie jest jeszcze pełną pamięcią długoterminową.
+
             STAN SYSTEMU
-            Przy każdej wiadomości otrzymujesz osobny aktualny SYSTEM STATE.
+            Przy każdej wiadomości otrzymujesz aktualny SYSTEM STATE.
             Traktuj go jako źródło prawdy o:
             - aktualnym czasie,
             - modelu,
@@ -88,33 +95,70 @@ public class OllamaService {
         this.model = model;
     }
 
-    public String chat(String userMessage) {
+    public String chat(
+            String userMessage,
+            List<ChatMessage> history) {
 
-        String systemState = buildSystemState();
+        String systemState =
+                buildSystemState();
 
-        OllamaRequest request = new OllamaRequest(
-                model,
-                List.of(
-                        new OllamaMessage(
-                                "system",
-                                SYSTEM_PROMPT + "\n\n" + systemState
-                        ),
-                        new OllamaMessage(
-                                "user",
-                                userMessage
-                        )
-                ),
-                GENERATION_OPTIONS,
-                false,
-                false
+        List<OllamaMessage> messages =
+                new ArrayList<>();
+
+        /*
+         * 1. Tożsamość + aktualny stan systemu.
+         */
+        messages.add(
+                new OllamaMessage(
+                        "system",
+                        SYSTEM_PROMPT +
+                                "\n\n" +
+                                systemState
+                )
         );
 
-        OllamaResponse response = restClient.post()
-                .uri("/api/chat")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(request)
-                .retrieve()
-                .body(OllamaResponse.class);
+        /*
+         * 2. Historia pobrana z PostgreSQL.
+         *
+         * AiController przekazuje ją już:
+         * oldest -> newest
+         */
+        for (ChatMessage message : history) {
+
+            messages.add(
+                    new OllamaMessage(
+                            message.getRole(),
+                            message.getContent()
+                    )
+            );
+        }
+
+        /*
+         * 3. Aktualna wiadomość użytkownika.
+         */
+        messages.add(
+                new OllamaMessage(
+                        "user",
+                        userMessage
+                )
+        );
+
+        OllamaRequest request =
+                new OllamaRequest(
+                        model,
+                        messages,
+                        GENERATION_OPTIONS,
+                        false,
+                        false
+                );
+
+        OllamaResponse response =
+                restClient.post()
+                        .uri("/api/chat")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(request)
+                        .retrieve()
+                        .body(OllamaResponse.class);
 
         if (response == null ||
                 response.message() == null ||
@@ -144,18 +188,21 @@ public class OllamaService {
 
                 capabilities:
                 chat: true
-                memory_write: true
-                memory_read: false
+
+                chat_storage: true
+                recent_conversation_history: true
+                long_term_memory: false
+
                 web_search: false
                 web_fetch: false
                 browser_control: false
                 homelab_tools: false
 
-                capability_notes:
-                - memory_write=true oznacza, że backend zapisuje rozmowy do PostgreSQL.
-                - memory_read=false oznacza, że nie otrzymujesz jeszcze wcześniejszych rozmów.
-                - web_search=false oznacza, że nie możesz obecnie wyszukiwać internetu.
-                - web_fetch=false oznacza, że nie możesz obecnie pobierać treści stron.
+                memory_notes:
+                - Backend zapisuje wiadomości do PostgreSQL.
+                - Backend przekazuje Ci ostatnie wiadomości jako kontekst rozmowy.
+                - Możesz korzystać tylko z historii faktycznie przekazanej w bieżącym requestcie.
+                - Nie posiadasz jeszcze pełnej pamięci długoterminowej.
                 """.formatted(
                 now.format(TIME_FORMAT),
                 model

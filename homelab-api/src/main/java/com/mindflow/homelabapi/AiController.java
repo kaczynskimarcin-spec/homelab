@@ -1,5 +1,8 @@
 package com.mindflow.homelabapi;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,27 +25,73 @@ public class AiController {
     @PostMapping("/chat")
     public ChatResponse chat(@RequestBody ChatRequest request) {
 
-        if (request.message() == null || request.message().isBlank()) {
+        if (request.message() == null ||
+                request.message().isBlank()) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Message cannot be empty"
             );
         }
 
+        /*
+         * Pobieramy historię PRZED zapisaniem
+         * aktualnej wiadomości użytkownika.
+         *
+         * Dzięki temu current user message
+         * nie pojawi się Qwenowi dwa razy.
+         */
+        List<ChatMessage> history =
+                chatMessageRepository
+                        .findTop20ByOrderByIdDesc();
+
+        /*
+         * Repository zwraca:
+         * newest -> oldest
+         *
+         * Qwen potrzebuje:
+         * oldest -> newest
+         */
+        Collections.reverse(history);
+
+        /*
+         * Zapis aktualnej wiadomości.
+         */
         chatMessageRepository.save(
-                new ChatMessage("user", request.message())
+                new ChatMessage(
+                        "user",
+                        request.message()
+                )
         );
 
-        String response = ollamaService.chat(request.message());
+        /*
+         * Historia + aktualne pytanie
+         * trafiają do OllamaService.
+         */
+        String response =
+                ollamaService.chat(
+                        request.message(),
+                        history
+                );
 
+        /*
+         * Zapis odpowiedzi AI.
+         */
         chatMessageRepository.save(
-                new ChatMessage("assistant", response)
+                new ChatMessage(
+                        "assistant",
+                        response
+                )
         );
 
         return new ChatResponse(response);
     }
 
-    public record ChatRequest(String message) {}
+    public record ChatRequest(
+            String message
+    ) {}
 
-    public record ChatResponse(String response) {}
+    public record ChatResponse(
+            String response
+    ) {}
 }
