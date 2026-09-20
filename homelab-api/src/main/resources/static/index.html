@@ -9,118 +9,248 @@
 <body>
   <main id="stage" aria-label="HOME — MY SECOND BRAIN dashboard">
     <div id="artboard">
-      <img class="reference" src="assets/dashboard-reference.png" alt="HOME — MY SECOND BRAIN dashboard" draggable="false" />
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-title">HOME</div>
+          <div class="brand-subtitle">MY SECOND BRAIN</div>
+        </div>
 
-      <!-- Navigation hotspots keep the reference visual intact. -->
-      <nav class="hotspots" aria-label="Main navigation">
-        <button class="hit nav home" data-action="Home" aria-label="Home"></button>
-        <button class="hit nav ai" data-action="AI" aria-label="AI"></button>
-        <button class="hit nav tasks" data-action="Tasks" aria-label="Tasks"></button>
-        <button class="hit nav workshop" data-action="Workshop" aria-label="Workshop"></button>
-        <button class="hit nav knowledge" data-action="Knowledge" aria-label="Knowledge"></button>
-        <button class="hit nav photos" data-action="Photos" aria-label="Photos"></button>
-        <button class="hit nav atlas" data-action="Atlas" aria-label="Atlas"></button>
-        <button class="hit nav system" data-action="System" aria-label="System"></button>
-        <button class="hit nav journey" data-action="Journey" aria-label="Journey"></button>
-        <button class="hit nav settings" data-action="Settings" aria-label="Settings"></button>
-      </nav>
+        <nav class="nav-list" aria-label="Main navigation">
+          <button class="nav-item active" data-view="Home"><span class="nav-icon">⌂</span><span>Home</span></button>
+          <button class="nav-item" data-view="AI"><span class="nav-icon">✣</span><span>AI</span></button>
+          <button class="nav-item" data-view="Tasks"><span class="nav-icon">□</span><span>Tasks</span></button>
+          <button class="nav-item" data-view="Workshop"><span class="nav-icon">⌘</span><span>Workshop</span></button>
+          <button class="nav-item" data-view="Knowledge"><span class="nav-icon">▢</span><span>Knowledge</span></button>
+          <button class="nav-item" data-view="Photos"><span class="nav-icon">▧</span><span>Photos</span></button>
+          <button class="nav-item" data-view="Atlas"><span class="nav-icon">⌗</span><span>Atlas</span></button>
+          <button class="nav-item" data-view="System"><span class="nav-icon">✺</span><span>System</span></button>
+          <button class="nav-item" data-view="Journey"><span class="nav-icon">◉</span><span>Journey</span></button>
+          <button class="nav-item" data-view="Settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
+        </nav>
 
-      <button class="hit focus-card" data-action="Open current focus" aria-label="Open current focus"></button>
-      <button class="hit project-card" data-action="Open HOME project" aria-label="Open current project"></button>
-      <button class="hit user" data-action="Account" aria-label="Account"></button>
+        <div class="sidebar-mantra">
+          <span></span>
+          <p>A CLEARER<br>MIND.<br>A STRONGER<br>SYSTEM.</p>
+        </div>
+        <div class="version">v0.7.0</div>
+      </aside>
 
-      <!-- Live top strip -->
-      <section class="live-clock glass-cover" aria-label="Current local time">
-        <div class="clock-row"><span class="weather-dot">●</span><span id="clockDate">—</span><span id="clockTime">—</span></div>
-        <div class="clock-sub">Warsaw, PL <span class="sep">|</span> HOME local-first</div>
-      </section>
-
-      <!-- Current focus: real project state -->
-      <section class="focus-overlay glass-cover" aria-label="Current focus">
-        <div class="section-kicker">CURRENT FOCUS <span>02</span></div>
-        <div class="focus-visual"></div>
-        <h2>Home AI<br>long-term memory</h2>
-        <p>Persistent memory storage is online. Next: retrieve useful memories into Qwen.</p>
-        <div class="focus-meta"><span id="memoryCount">— memories</span><span class="live-dot"></span></div>
-      </section>
-
-      <!-- System health adapted to actual HomeLab -->
-      <section class="health-overlay glass-cover" aria-label="System health">
-        <div class="section-kicker">SYSTEM HEALTH <span>01</span></div>
-        <div class="health-body">
-          <div class="health-ring"><strong id="healthScore">4/6</strong><span>verified</span></div>
-          <div class="health-list">
-            <div><i class="ok"></i><span>Spring API</span><b id="statusApi">Online</b></div>
-            <div><i class="ok"></i><span>PostgreSQL</span><b id="statusDb">Checking</b></div>
-            <div><i class="ok"></i><span>Memory</span><b id="statusMemory">Checking</b></div>
-            <div><i class="idle"></i><span>Ollama</span><b id="statusOllama">On use</b></div>
-            <div><i class="idle"></i><span>SearXNG</span><b id="statusSearch">On use</b></div>
-            <div><i class="ok"></i><span>Docker</span><b>Running</b></div>
+      <section class="shell">
+        <header class="topbar">
+          <div class="local-info">
+            <span class="weather-dot">◒</span>
+            <div>
+              <strong id="topDate">—</strong>
+              <small>Warsaw, PL</small>
+            </div>
+            <div class="divider"></div>
+            <strong id="topTime">—</strong>
           </div>
+
+          <div class="top-motto">A BRIDGE BETWEEN SELF AND SYSTEM</div>
+
+          <div class="top-actions">
+            <label class="search-shell" aria-label="Search the web">
+              <span>⌕</span>
+              <input id="search" type="text" placeholder="Search anything..." autocomplete="off" />
+              <kbd>Ctrl K</kbd>
+            </label>
+            <div class="system-summary"><span class="status-dot live"></span><span id="topHealthText">Checking systems…</span></div>
+            <button class="avatar" aria-label="Account">◎</button>
+          </div>
+        </header>
+
+        <div class="workspace">
+          <section class="personal-world">
+            <div class="hero-visual">
+              <div class="warm-haze"></div>
+              <svg class="mountains" viewBox="0 0 620 330" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="sky" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0" stop-color="#101416"/>
+                    <stop offset=".55" stop-color="#2a201b"/>
+                    <stop offset="1" stop-color="#0d1113"/>
+                  </linearGradient>
+                  <linearGradient id="ridge" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0" stop-color="#202426"/>
+                    <stop offset="1" stop-color="#090c0d"/>
+                  </linearGradient>
+                </defs>
+                <rect width="620" height="330" fill="url(#sky)"/>
+                <path d="M0 245 L75 192 L122 214 L185 131 L242 201 L314 105 L373 174 L414 126 L478 203 L531 157 L620 229 L620 330 L0 330Z" fill="url(#ridge)" opacity=".95"/>
+                <path d="M0 266 C110 252 154 276 241 261 C338 244 388 272 482 254 C531 245 574 250 620 260 L620 330 L0 330Z" fill="#090c0d" opacity=".88"/>
+                <path d="M0 280 C105 271 188 291 286 276 C389 260 460 287 620 268" fill="none" stroke="#9e633e" stroke-opacity=".42" stroke-width="2"/>
+              </svg>
+
+              <div class="hero-copy">
+                <div class="hero-quote">“A calmer system<br>makes room for a clearer mind.”</div>
+                <h1 id="greeting">Good morning.</h1>
+                <p>Same mind. A wider tomorrow.</p>
+              </div>
+            </div>
+
+            <div class="left-content">
+              <div class="upper-grid">
+                <article class="today-panel panel-clean">
+                  <div class="section-kicker">TODAY <span>01</span></div>
+                  <div class="rule"></div>
+                  <div class="task-summary"><strong id="taskSummary">3 of 6</strong> tasks completed <span id="taskPercent">50%</span></div>
+                  <div class="progress"><i id="taskProgress" style="width:50%"></i></div>
+                  <div class="task-list" id="taskList">
+                    <label><input type="checkbox" checked /><span>Review Home AI memory</span></label>
+                    <label><input type="checkbox" checked /><span>Study Java — Spring Boot</span></label>
+                    <label><input type="checkbox" checked /><span>Check HomeLab services</span></label>
+                    <label><input type="checkbox" /><span>Connect memory to Qwen</span></label>
+                    <label><input type="checkbox" /><span>Design readPage tool</span></label>
+                    <label><input type="checkbox" /><span>Plan next dashboard iteration</span></label>
+                  </div>
+                </article>
+
+                <article class="focus-panel panel-clean">
+                  <div class="section-kicker">CURRENT FOCUS <span>02</span></div>
+                  <div class="rule"></div>
+                  <div class="focus-card">
+                    <div class="focus-image">
+                      <div class="focus-peak"></div>
+                    </div>
+                    <h3>Home AI<br>long-term memory</h3>
+                    <p id="focusCopy">Building structured memory for facts, goals, preferences and reflections.</p>
+                    <div class="focus-meta"><span id="memoryCount">— memories</span><span>→</span></div>
+                  </div>
+                </article>
+              </div>
+
+              <article class="project-panel panel-clean">
+                <div class="section-kicker">CURRENT PROJECT <span>03</span></div>
+                <div class="project-card">
+                  <div class="project-thumb"><span>HOME</span></div>
+                  <div class="project-copy">
+                    <h3>HOME —<br>My Second Brain</h3>
+                    <p>A private AI operating environment for thinking, building and living.</p>
+                  </div>
+                  <button class="more" aria-label="Project menu">•••</button>
+                  <div class="project-progress">
+                    <div class="progress"><i style="width:56%"></i></div>
+                    <strong>5 / 9</strong>
+                  </div>
+                  <div class="project-tags"><span>AI</span><span>Infrastructure</span><span>Memory</span></div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="ai-bridge">
+            <svg class="neural-map" viewBox="0 0 420 932" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="lineWarm" x1="0" x2="1"><stop stop-color="#bd784c" stop-opacity="0"/><stop offset=".75" stop-color="#cc7f4d" stop-opacity=".68"/><stop offset="1" stop-color="#d0aa86" stop-opacity=".2"/></linearGradient>
+                <linearGradient id="lineCool" x1="0" x2="1"><stop stop-color="#6ce7ff" stop-opacity=".08"/><stop offset=".25" stop-color="#51c9e8" stop-opacity=".72"/><stop offset="1" stop-color="#0a4e60" stop-opacity="0"/></linearGradient>
+                <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+              <g class="warm-lines" fill="none" stroke="url(#lineWarm)" stroke-width="1.1">
+                <path d="M0 181 C92 190 117 300 190 386"/><path d="M0 282 C84 286 103 350 191 392"/><path d="M3 405 C74 402 115 391 190 396"/><path d="M0 535 C86 510 115 440 192 404"/><path d="M0 703 C102 611 111 503 190 410"/>
+              </g>
+              <g class="cool-lines" fill="none" stroke="url(#lineCool)" stroke-width="1.1">
+                <path d="M226 388 C306 330 342 260 420 241"/><path d="M228 396 C317 391 344 394 420 405"/><path d="M228 404 C312 442 350 495 420 520"/><path d="M226 412 C304 498 337 622 420 674"/><path d="M230 418 C303 568 347 773 420 842"/>
+              </g>
+              <g filter="url(#glow)"><circle cx="191" cy="396" r="3" fill="#d39a71"/><circle cx="228" cy="404" r="3" fill="#62d8f1"/></g>
+            </svg>
+
+            <div class="bridge-copy top">
+              <span>THINK</span><span>CREATE</span><span>EXPLORE</span><span>LIVE</span><span>BETTER</span>
+              <i></i>
+            </div>
+
+            <div class="ai-orb-wrap">
+              <div class="ai-orb" id="aiOrb">
+                <div class="orb-rim"></div>
+                <div class="orb-core"></div>
+                <div class="orb-label"><strong>HOME AI</strong><span>Local by default.</span></div>
+              </div>
+            </div>
+
+            <div class="bridge-copy bottom">
+              <span>Remember</span><span>Search</span><span>Connect</span><span>Organize</span><span>Automate</span><span>Protect</span>
+              <i></i>
+            </div>
+
+            <div class="ai-response" id="aiResponse" aria-live="polite">
+              <div class="ai-response-head"><span>HOME AI</span><button id="closeAnswer" aria-label="Close answer">×</button></div>
+              <div class="ai-response-body" id="aiResponseBody"></div>
+            </div>
+
+            <div class="ai-composer">
+              <input id="aiPrompt" type="text" placeholder="Ask, plan, write, explore..." autocomplete="off" />
+              <button id="webToggle" class="web-toggle" type="button" aria-pressed="false" title="Use web search"><span>◎</span> WEB</button>
+              <button id="sendPrompt" class="send" type="button" aria-label="Send prompt">↑</button>
+            </div>
+          </section>
+
+          <section class="machine-world">
+            <div class="server-visual">
+              <div class="server-copy">DIFFERENT SYSTEMS.<br>A MORE CAPABLE YOU.</div>
+              <div class="rack-group" aria-hidden="true">
+                <div class="rack rack-a"></div><div class="rack rack-b"></div><div class="rack rack-c"></div><div class="rack rack-d"></div><div class="rack rack-e"></div>
+              </div>
+            </div>
+
+            <div class="right-content">
+              <article class="health-panel panel-clean">
+                <div class="section-kicker">SYSTEM HEALTH <span>01</span></div>
+                <div class="health-grid">
+                  <div class="health-ring" id="healthRing"><div><strong id="healthCount">0/4</strong><span>Verified</span></div></div>
+                  <div class="health-list">
+                    <div><span class="status-dot" data-service="api"></span><span>Spring API</span><b id="statusApi">Checking</b></div>
+                    <div><span class="status-dot" data-service="postgres"></span><span>PostgreSQL</span><b id="statusPostgres">Checking</b></div>
+                    <div><span class="status-dot" data-service="ollama"></span><span>Ollama</span><b id="statusOllama">Standby</b></div>
+                    <div><span class="status-dot" data-service="searxng"></span><span>SearXNG</span><b id="statusSearxng">Standby</b></div>
+                  </div>
+                </div>
+              </article>
+
+              <article class="runtime-panel panel-clean">
+                <div class="section-kicker">AI RUNTIME <span>02</span></div>
+                <div class="runtime-grid">
+                  <div class="runtime-card">
+                    <dl>
+                      <div><dt>Model</dt><dd>Qwen 3.5 4B</dd></div>
+                      <div><dt>Provider</dt><dd>Ollama · Local</dd></div>
+                      <div><dt>Status</dt><dd><span class="status-dot" data-service="ollama"></span><span id="runtimeStatus">Standby</span></dd></div>
+                      <div><dt>GPU</dt><dd>RTX 2060 · 6 GB</dd></div>
+                      <div><dt>Context</dt><dd>~4,096 tokens</dd></div>
+                    </dl>
+                  </div>
+                  <div class="runtime-graph">
+                    <svg viewBox="0 0 230 92" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="graphFill" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#48c4a8" stop-opacity=".28"/><stop offset="1" stop-color="#48c4a8" stop-opacity="0"/></linearGradient></defs><path d="M0 68 C14 69 18 47 33 53 C46 58 51 66 62 60 C73 54 77 46 88 48 C100 50 104 58 118 54 C132 50 136 23 149 29 C162 35 165 54 177 48 C188 43 195 34 205 42 C214 49 219 55 230 51 L230 92 L0 92Z" fill="url(#graphFill)"/><path d="M0 68 C14 69 18 47 33 53 C46 58 51 66 62 60 C73 54 77 46 88 48 C100 50 104 58 118 54 C132 50 136 23 149 29 C162 35 165 54 177 48 C188 43 195 34 205 42 C214 49 219 55 230 51" fill="none" stroke="#54cbb0" stroke-width="1.25"/></svg>
+                    <div><span id="runtimeLabel">Idle</span><b id="runtimeMetric">local</b></div>
+                  </div>
+                </div>
+              </article>
+
+              <article class="services-panel panel-clean">
+                <div class="section-kicker">SERVICES <span>03</span></div>
+                <div class="service-cards">
+                  <button class="service-card" data-service-action="api"><span class="service-icon">◇</span><span>Spring API</span><small><i class="status-dot" data-service="api"></i><em id="serviceApiText">Checking</em></small></button>
+                  <button class="service-card" data-service-action="postgres"><span class="service-icon">♙</span><span>PostgreSQL</span><small><i class="status-dot" data-service="postgres"></i><em id="servicePostgresText">Checking</em></small></button>
+                  <button class="service-card" data-service-action="ollama"><span class="service-icon">◌</span><span>Ollama</span><small><i class="status-dot" data-service="ollama"></i><em id="serviceOllamaText">Standby</em></small></button>
+                  <button class="service-card" data-service-action="searxng"><span class="service-icon">⌕</span><span>SearXNG</span><small><i class="status-dot" data-service="searxng"></i><em id="serviceSearchText">Standby</em></small></button>
+                </div>
+              </article>
+
+              <article class="events-panel panel-clean">
+                <div class="events-head"><div class="section-kicker">RECENT INFRASTRUCTURE EVENTS <span>04</span></div><button id="clearEvents">Clear</button></div>
+                <div class="event-list" id="eventList"></div>
+              </article>
+            </div>
+          </section>
         </div>
       </section>
 
-      <!-- Actual AI runtime instead of the stale llama3.2 mockup -->
-      <section class="runtime-overlay glass-cover" aria-label="AI runtime">
-        <div class="section-kicker">AI RUNTIME <span>02</span></div>
-        <div class="runtime-grid">
-          <span>Model</span><strong>Qwen 3.5 4B</strong>
-          <span>Provider</span><strong>Ollama (Local)</strong>
-          <span>Status</span><strong class="accent" id="runtimeStatus">Ready</strong>
-          <span>GPU</span><strong>RTX 2060 (6 GB)</strong>
-          <span>Context</span><strong>~4,096 tokens</strong>
-        </div>
-      </section>
-
-      <!-- Services adapted to current stack -->
-      <section class="services-overlay glass-cover" aria-label="Core services">
-        <div class="section-kicker">SERVICES <span>03</span></div>
-        <div class="service-grid">
-          <div><span>Spring API</span><small>Running ●</small></div>
-          <div><span>PostgreSQL</span><small>Memory DB ●</small></div>
-          <div><span>Ollama</span><small>Local AI ●</small></div>
-          <div><span>SearXNG</span><small>Web search ●</small></div>
-        </div>
-      </section>
-
-      <!-- Project-accurate milestones -->
-      <section class="events-overlay glass-cover" aria-label="Recent infrastructure events">
-        <div class="section-kicker">RECENT INFRASTRUCTURE EVENTS <span>04</span></div>
-        <div class="events-list">
-          <div><time>Now</time><i></i><span>Long-term memory READ + WRITE enabled</span><b>Success</b></div>
-          <div><time>Recent</time><i></i><span>SearXNG connected to Spring Boot</span><b>Success</b></div>
-          <div><time>Recent</time><i></i><span>Conversation-scoped recall enabled</span><b>Success</b></div>
-          <div><time>Recent</time><i></i><span>Web context connected to Qwen</span><b>Success</b></div>
-        </div>
-      </section>
-
-      <!-- Search input + real search results -->
-      <div class="input-shell top-search" data-shell="search">
-        <input id="search" type="text" placeholder="Search anything..." autocomplete="off" aria-label="Search anything" />
+      <div class="search-results" id="searchResults" aria-live="polite">
+        <div class="search-results-head"><span>WEB SEARCH</span><button id="closeSearch">×</button></div>
+        <pre id="searchResultsBody"></pre>
       </div>
-      <section id="searchPanel" class="floating-panel search-panel" hidden>
-        <div class="panel-title">WEB SEARCH</div>
-        <pre id="searchResults"></pre>
-      </section>
 
-      <!-- HOME AI response surface -->
-      <section id="aiResponse" class="floating-panel ai-response" hidden aria-live="polite">
-        <div class="panel-head">
-          <span>HOME AI</span>
-          <span id="aiStatus">READY</span>
-        </div>
-        <div id="lastUserPrompt" class="last-user"></div>
-        <div id="aiResponseText" class="ai-response-text"></div>
-      </section>
-
-      <!-- Working AI input. WEB toggle currently maps to the backend's web: prefix. -->
-      <div class="input-shell ai-input" data-shell="ai">
-        <input id="aiPrompt" type="text" placeholder="Ask, plan, write, explore..." autocomplete="off" aria-label="Ask Home AI" />
-        <button id="webToggle" type="button" aria-pressed="false" title="Use web search">WEB</button>
-        <button id="sendPrompt" aria-label="Send prompt"></button>
-      </div>
-
-      <div id="toast" role="status" aria-live="polite"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </div>
   </main>
 
