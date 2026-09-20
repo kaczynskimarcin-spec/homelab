@@ -30,7 +30,7 @@
       <div class="sidebar-footer">
         <div class="mantra-line"></div>
         <p>A CLEARER<br>MIND.<br>A RICHER<br>LIFE.</p>
-        <small>v0.10.0</small>
+        <small>v0.11.0</small>
       </div>
     </aside>
 
@@ -59,7 +59,7 @@
         </div>
       </header>
 
-      <div class="workspace">
+      <div class="workspace app-view active" id="view-home">
         <section class="personal-world">
           <div class="hero">
             <div class="hero-atmosphere"></div>
@@ -170,7 +170,7 @@
             <div class="orb-halo halo-a"></div>
             <div class="orb-halo halo-b"></div>
             <div class="orb-halo halo-c"></div>
-            <div class="ai-orb" id="aiOrb">
+            <div class="ai-orb" id="aiOrb" data-open-view="AI" role="button" tabindex="0" aria-label="Open Home AI">
               <div class="orb-noise"></div>
               <div class="orb-inner-ring"></div>
               <div class="orb-sheen"></div>
@@ -256,6 +256,112 @@
           </div>
         </section>
       </div>
+
+
+      <section class="app-view ai-page-view" id="view-ai" aria-label="Home AI workspace">
+        <div class="ai-page-atmosphere" aria-hidden="true">
+          <img src="assets/hero-mountains.webp" alt="" />
+          <div></div>
+        </div>
+
+        <div class="ai-page-shell">
+          <header class="ai-page-header">
+            <div>
+              <div class="ai-page-eyebrow"><span class="status-dot live"></span> HOME AI · LOCAL INTELLIGENCE</div>
+              <h1>Think with HOME.</h1>
+              <p>Your private workspace for conversation, memory, research and creation.</p>
+            </div>
+            <div class="ai-page-header-meta">
+              <div><span>MODEL</span><strong>Qwen 3.5 4B</strong></div>
+              <div><span>PROVIDER</span><strong>Ollama · Local</strong></div>
+              <div><span>MEMORY</span><strong id="aiInspectorMemoryHeader">Loading…</strong></div>
+            </div>
+          </header>
+
+          <div class="ai-page-grid">
+            <section class="ai-chat-panel">
+              <div class="ai-chat-toolbar">
+                <div>
+                  <span class="ai-chat-title">HOME AI</span>
+                  <small id="aiChatModeLabel">Local · memory enabled</small>
+                </div>
+                <div class="ai-toolbar-actions">
+                  <button class="ai-tool-button" id="aiNewChat" type="button">＋ New chat</button>
+                  <button class="ai-tool-button" id="aiClearChat" type="button">Clear</button>
+                </div>
+              </div>
+
+              <div class="ai-quick-row" aria-label="Quick prompts">
+                <button class="ai-quick-chip" data-ai-prompt="Summarize what we have built in HOME so far.">Summarize HOME</button>
+                <button class="ai-quick-chip" data-ai-prompt="What should we improve next in my HomeLab?">Next HomeLab step</button>
+                <button class="ai-quick-chip" data-ai-prompt="What do you remember about my goals?">Recall my goals</button>
+                <button class="ai-quick-chip" data-ai-prompt="web: What are the newest important Spring Boot updates?">Research Spring Boot</button>
+              </div>
+
+              <div class="ai-page-messages" id="aiPageMessages" aria-live="polite">
+                <article class="ai-message assistant">
+                  <div class="ai-message-meta"><span>HOME AI</span><small>LOCAL</small></div>
+                  <div class="ai-message-bubble">
+                    I’m here. We can think, build, search the web, or work from your long-term memory.
+                  </div>
+                </article>
+              </div>
+
+              <div class="ai-page-composer">
+                <div class="ai-page-input-wrap">
+                  <textarea id="aiPagePrompt" rows="1" placeholder="Ask HOME anything…" aria-label="Ask Home AI"></textarea>
+                  <div class="ai-page-composer-meta">
+                    <span id="aiPagePrivacyNote">Private · local by default</span>
+                    <span>Enter to send · Shift+Enter for new line</span>
+                  </div>
+                </div>
+                <button id="aiPageWebToggle" class="ai-page-mode" type="button" aria-pressed="false" title="Use web search for this prompt">◎ WEB</button>
+                <button id="aiPageSend" class="ai-page-send" type="button" aria-label="Send prompt">↑</button>
+              </div>
+            </section>
+
+            <aside class="ai-inspector">
+              <section class="inspector-card identity-card">
+                <div class="inspector-heading"><span>RUNTIME</span><b>01</b></div>
+                <div class="identity-orb"><span>HOME AI</span></div>
+                <dl class="inspector-specs">
+                  <div><dt>Model</dt><dd>Qwen 3.5 4B</dd></div>
+                  <div><dt>Provider</dt><dd>Ollama · Local</dd></div>
+                  <div><dt>GPU</dt><dd>RTX 2060 · 6 GB</dd></div>
+                  <div><dt>Context</dt><dd>~4,096 tokens</dd></div>
+                </dl>
+              </section>
+
+              <section class="inspector-card">
+                <div class="inspector-heading"><span>MEMORY</span><b>02</b></div>
+                <div class="memory-stat">
+                  <strong id="aiInspectorMemoryCount">—</strong>
+                  <span>long-term memories</span>
+                </div>
+                <div class="inspector-status-line"><i class="status-dot live"></i><span>Recent conversation</span><b>ON</b></div>
+                <div class="inspector-status-line"><i class="status-dot live"></i><span>Long-term memory</span><b>ON</b></div>
+                <p id="aiInspectorLatestMemory">Loading latest memory…</p>
+              </section>
+
+              <section class="inspector-card">
+                <div class="inspector-heading"><span>TOOLS</span><b>03</b></div>
+                <div class="tool-list">
+                  <div><span>⌕</span><p><b>Web Search</b><small>SearXNG</small></p><em>Available</em></div>
+                  <div><span>◫</span><p><b>Chat History</b><small>PostgreSQL</small></p><em>Active</em></div>
+                  <div><span>◇</span><p><b>Long-term Memory</b><small>Memory API</small></p><em>Active</em></div>
+                  <div class="soon"><span>↗</span><p><b>Page Reader</b><small>Research tool</small></p><em>Soon</em></div>
+                </div>
+              </section>
+
+              <section class="inspector-card privacy-card">
+                <div class="inspector-heading"><span>PRIVACY</span><b>04</b></div>
+                <div class="privacy-badge">LOCAL FIRST</div>
+                <p>Memory stays in your HomeLab. Web queries only leave the system when WEB is enabled.</p>
+              </section>
+            </aside>
+          </div>
+        </div>
+      </section>
     </section>
 
     <div class="search-results" id="searchResults" aria-live="polite">

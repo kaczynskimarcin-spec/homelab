@@ -10,8 +10,17 @@ const searchResults = document.getElementById('searchResults');
 const searchResultsBody = document.getElementById('searchResultsBody');
 const eventList = document.getElementById('eventList');
 
+const aiPagePrompt = document.getElementById('aiPagePrompt');
+const aiPageSend = document.getElementById('aiPageSend');
+const aiPageWebToggle = document.getElementById('aiPageWebToggle');
+const aiPageMessages = document.getElementById('aiPageMessages');
+const aiChatModeLabel = document.getElementById('aiChatModeLabel');
+const aiPagePrivacyNote = document.getElementById('aiPagePrivacyNote');
+
 let toastTimer;
 let webEnabled = false;
+let aiPageWebEnabled = false;
+let conversationId = createConversationId();
 const serviceState = { api: false, postgres: false, ollama: false, searxng: false };
 
 function createConversationId() {
@@ -23,8 +32,6 @@ function createConversationId() {
   const hex = [...bytes].map((b) => b.toString(16).padStart(2, '0'));
   return [hex.slice(0,4).join(''), hex.slice(4,6).join(''), hex.slice(6,8).join(''), hex.slice(8,10).join(''), hex.slice(10,16).join('')].join('-');
 }
-
-const conversationId = createConversationId();
 
 function showToast(message) {
   clearTimeout(toastTimer);
@@ -67,7 +74,8 @@ function setService(name, online, label) {
   });
 
   if (name === 'ollama') {
-    document.getElementById('runtimeStatus').textContent = label || (online ? 'Connected' : 'Standby');
+    const runtimeStatus = document.getElementById('runtimeStatus');
+    if (runtimeStatus) runtimeStatus.textContent = label || (online ? 'Connected' : 'Standby');
   }
   updateHealth();
 }
@@ -76,10 +84,13 @@ function updateHealth() {
   const total = Object.keys(serviceState).length;
   const online = Object.values(serviceState).filter(Boolean).length;
   const healthRing = document.getElementById('healthRing');
-  document.getElementById('healthCount').textContent = `${online}/${total}`;
+  const healthCount = document.getElementById('healthCount');
+  if (healthCount) healthCount.textContent = `${online}/${total}`;
   document.getElementById('topHealthText').textContent = online === total ? 'All verified systems operational' : `${online} of ${total} systems verified`;
-  const degrees = Math.round((online / total) * 360);
-  healthRing.style.background = `conic-gradient(var(--green) ${degrees}deg, rgba(66,160,108,.18) ${degrees}deg)`;
+  if (healthRing) {
+    const degrees = Math.round((online / total) * 360);
+    healthRing.style.background = `conic-gradient(var(--green) ${degrees}deg, rgba(66,160,108,.18) ${degrees}deg)`;
+  }
 }
 
 function escapeHtml(value) {
@@ -101,6 +112,7 @@ function timeAgo(ts) {
 }
 
 function renderEvents() {
+  if (!eventList) return;
   if (!events.length) {
     eventList.innerHTML = '<div class="event-row info"><span>now</span><i class="status-dot live"></i><strong>Dashboard session started</strong><b>Info</b></div>';
     return;
@@ -124,22 +136,40 @@ async function loadMemory() {
     setService('postgres', true, 'Running');
 
     const count = Array.isArray(memories) ? memories.length : 0;
-    document.getElementById('memoryCount').textContent = `${count} ${count === 1 ? 'memory' : 'memories'}`;
+    const memoryCount = document.getElementById('memoryCount');
+    if (memoryCount) memoryCount.textContent = `${count} ${count === 1 ? 'memory' : 'memories'}`;
+    const inspectorCount = document.getElementById('aiInspectorMemoryCount');
+    if (inspectorCount) inspectorCount.textContent = String(count);
+    const inspectorHeader = document.getElementById('aiInspectorMemoryHeader');
+    if (inspectorHeader) inspectorHeader.textContent = `${count} stored`;
+
     if (count) {
       const latest = memories[memories.length - 1];
-      document.getElementById('focusCopy').textContent = latest.content;
+      const focusCopy = document.getElementById('focusCopy');
+      if (focusCopy) focusCopy.textContent = latest.content;
+      const latestMemory = document.getElementById('aiInspectorLatestMemory');
+      if (latestMemory) latestMemory.textContent = latest.content;
+    } else {
+      const latestMemory = document.getElementById('aiInspectorLatestMemory');
+      if (latestMemory) latestMemory.textContent = 'No long-term memories stored yet.';
     }
     addEvent(`Memory API verified · ${count} stored`, 'success');
   } catch (error) {
     setService('api', false, 'Offline');
     setService('postgres', false, 'Unknown');
-    document.getElementById('memoryCount').textContent = 'Memory unavailable';
+    const memoryCount = document.getElementById('memoryCount');
+    if (memoryCount) memoryCount.textContent = 'Memory unavailable';
+    const inspectorHeader = document.getElementById('aiInspectorMemoryHeader');
+    if (inspectorHeader) inspectorHeader.textContent = 'Unavailable';
+    const latestMemory = document.getElementById('aiInspectorLatestMemory');
+    if (latestMemory) latestMemory.textContent = 'Memory API unavailable.';
     addEvent('Memory API unavailable', 'warn');
   }
 }
 
 function updateTasks() {
   const boxes = [...document.querySelectorAll('#taskList input[type="checkbox"]')];
+  if (!boxes.length) return;
   const complete = boxes.filter((box) => box.checked).length;
   const total = boxes.length;
   const percent = Math.round((complete / total) * 100);
@@ -151,6 +181,7 @@ function updateTasks() {
 
 function restoreTasks() {
   const boxes = [...document.querySelectorAll('#taskList input[type="checkbox"]')];
+  if (!boxes.length) return;
   try {
     const saved = JSON.parse(localStorage.getItem('homeTasks'));
     if (Array.isArray(saved) && saved.length === boxes.length) {
@@ -164,7 +195,6 @@ function restoreTasks() {
 async function submitSearch() {
   const value = search.value.trim();
   if (!value) return;
-
   searchResultsBody.textContent = 'Searching…';
   searchResults.classList.add('show');
 
@@ -182,11 +212,22 @@ async function submitSearch() {
   }
 }
 
+async function requestHomeAi(raw, useWeb) {
+  const outgoing = useWeb && !/^web:/i.test(raw) ? `web: ${raw}` : raw;
+  const response = await fetch('/api/ai/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: outgoing, conversationId })
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  return data.response || 'No response.';
+}
+
 async function submitPrompt() {
   const raw = aiPrompt.value.trim();
   if (!raw || sendPrompt.disabled) return;
 
-  const outgoing = webEnabled && !/^web:/i.test(raw) ? `web: ${raw}` : raw;
   aiPrompt.value = '';
   sendPrompt.disabled = true;
   aiOrb.classList.add('thinking');
@@ -196,15 +237,8 @@ async function submitPrompt() {
   aiResponse.classList.add('show');
 
   try {
-    const response = await fetch('/api/ai/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: outgoing, conversationId })
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const data = await response.json();
-    aiResponseBody.textContent = data.response || 'No response.';
+    const answer = await requestHomeAi(raw, webEnabled);
+    aiResponseBody.textContent = answer;
     setService('api', true, 'Running');
     setService('ollama', true, 'Connected');
     if (webEnabled) setService('searxng', true, 'Running');
@@ -221,12 +255,125 @@ async function submitPrompt() {
   }
 }
 
+function addAiPageMessage(role, text, options = {}) {
+  const article = document.createElement('article');
+  article.className = `ai-message ${role}${options.thinking ? ' thinking' : ''}${options.error ? ' error' : ''}`;
+  const who = role === 'user' ? 'YOU' : 'HOME AI';
+  const badge = role === 'user' ? 'YOU' : options.web ? 'WEB + LOCAL' : 'LOCAL';
+  article.innerHTML = `
+    <div class="ai-message-meta"><span>${who}</span><small>${badge}</small></div>
+    <div class="ai-message-bubble"></div>
+  `;
+  article.querySelector('.ai-message-bubble').textContent = text;
+  aiPageMessages.appendChild(article);
+  aiPageMessages.scrollTop = aiPageMessages.scrollHeight;
+  return article;
+}
+
+function autosizeAiTextarea() {
+  aiPagePrompt.style.height = 'auto';
+  aiPagePrompt.style.height = `${Math.min(aiPagePrompt.scrollHeight, 110)}px`;
+}
+
+function updateAiPageWebState(enabled) {
+  aiPageWebEnabled = enabled;
+  aiPageWebToggle.classList.toggle('active', enabled);
+  aiPageWebToggle.setAttribute('aria-pressed', String(enabled));
+  aiChatModeLabel.textContent = enabled ? 'Web + local · memory enabled' : 'Local · memory enabled';
+  aiPagePrivacyNote.textContent = enabled ? 'WEB enabled · query leaves HomeLab' : 'Private · local by default';
+}
+
+async function submitAiPagePrompt() {
+  const raw = aiPagePrompt.value.trim();
+  if (!raw || aiPageSend.disabled) return;
+
+  addAiPageMessage('user', raw);
+  aiPagePrompt.value = '';
+  autosizeAiTextarea();
+  aiPageSend.disabled = true;
+  const thinking = addAiPageMessage('assistant', 'Thinking…', { thinking: true, web: aiPageWebEnabled });
+
+  try {
+    const explicitWeb = /^web:/i.test(raw);
+    const useWeb = aiPageWebEnabled || explicitWeb;
+    const answer = await requestHomeAi(raw, useWeb);
+    thinking.remove();
+    addAiPageMessage('assistant', answer, { web: useWeb });
+    setService('api', true, 'Running');
+    setService('ollama', true, 'Connected');
+    if (useWeb) setService('searxng', true, 'Running');
+    addEvent(useWeb ? 'AI workspace answered with web context' : 'AI workspace answered locally', 'success');
+  } catch (error) {
+    thinking.remove();
+    addAiPageMessage('assistant', `HOME AI unavailable\n${error.message}`, { error: true });
+    setService('ollama', false, 'Unavailable');
+    addEvent('Home AI workspace request failed', 'warn');
+  } finally {
+    aiPageSend.disabled = false;
+    aiPagePrompt.focus();
+  }
+}
+
+function clearAiPageChat(showWelcome = true) {
+  aiPageMessages.innerHTML = '';
+  if (showWelcome) {
+    addAiPageMessage('assistant', 'New workspace ready. What do you want to work on?');
+  }
+}
+
+function openView(viewName) {
+  const normalized = String(viewName || '').toLowerCase();
+  const available = normalized === 'home' || normalized === 'ai';
+  if (!available) {
+    showToast(`${viewName} · next module to design`);
+    return;
+  }
+
+  document.querySelectorAll('.app-view').forEach((view) => view.classList.remove('active'));
+  const target = document.getElementById(`view-${normalized}`);
+  if (target) target.classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach((item) => {
+    item.classList.toggle('active', item.dataset.view?.toLowerCase() === normalized);
+  });
+
+  history.replaceState(null, '', normalized === 'home' ? location.pathname : `${location.pathname}#${normalized}`);
+  if (normalized === 'ai') setTimeout(() => aiPagePrompt.focus(), 80);
+}
+
 webToggle.addEventListener('click', () => {
   webEnabled = !webEnabled;
   webToggle.classList.toggle('active', webEnabled);
   webToggle.setAttribute('aria-pressed', String(webEnabled));
   showToast(webEnabled ? 'WEB enabled for next prompts' : 'WEB disabled · local mode');
 });
+
+aiPageWebToggle.addEventListener('click', () => updateAiPageWebState(!aiPageWebEnabled));
+aiPageSend.addEventListener('click', submitAiPagePrompt);
+aiPagePrompt.addEventListener('input', autosizeAiTextarea);
+aiPagePrompt.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    submitAiPagePrompt();
+  }
+});
+
+document.querySelectorAll('.ai-quick-chip').forEach((button) => {
+  button.addEventListener('click', () => {
+    const prompt = button.dataset.aiPrompt || '';
+    if (/^web:/i.test(prompt)) updateAiPageWebState(true);
+    aiPagePrompt.value = prompt.replace(/^web:\s*/i, '');
+    autosizeAiTextarea();
+    aiPagePrompt.focus();
+  });
+});
+
+document.getElementById('aiNewChat').addEventListener('click', () => {
+  conversationId = createConversationId();
+  clearAiPageChat(true);
+  showToast('New AI conversation started');
+});
+document.getElementById('aiClearChat').addEventListener('click', () => clearAiPageChat(true));
 
 search.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') submitSearch();
@@ -243,16 +390,20 @@ aiPrompt.addEventListener('keydown', (event) => {
 });
 
 sendPrompt.addEventListener('click', submitPrompt);
+aiOrb.addEventListener('click', () => openView('AI'));
+aiOrb.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    openView('AI');
+  }
+});
+
 document.getElementById('closeAnswer').addEventListener('click', () => aiResponse.classList.remove('show'));
 document.getElementById('closeSearch').addEventListener('click', () => searchResults.classList.remove('show'));
 document.getElementById('clearEvents').addEventListener('click', () => { events.length = 0; renderEvents(); });
 
 document.querySelectorAll('.nav-item').forEach((button) => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach((item) => item.classList.remove('active'));
-    button.classList.add('active');
-    showToast(`${button.dataset.view} module · UI shell ready`);
-  });
+  button.addEventListener('click', () => openView(button.dataset.view));
 });
 
 document.querySelectorAll('[data-service-action]').forEach((button) => {
@@ -268,6 +419,9 @@ document.addEventListener('keydown', (event) => {
     search.focus();
     search.select();
   }
+  if (event.key === 'Escape' && document.getElementById('view-ai').classList.contains('active')) {
+    openView('Home');
+  }
 });
 
 setInterval(updateClock, 15_000);
@@ -276,3 +430,7 @@ updateClock();
 restoreTasks();
 renderEvents();
 loadMemory();
+updateAiPageWebState(false);
+
+const initialView = location.hash.toLowerCase() === '#ai' ? 'AI' : 'Home';
+openView(initialView);
