@@ -878,3 +878,74 @@ button.arch-node { appearance:none; font:inherit; cursor:pointer; }
 .tasks-hint-card{align-self:stretch;background:linear-gradient(180deg,rgba(16,28,33,.9),rgba(9,14,17,.96)),radial-gradient(circle at 80% 20%,rgba(54,160,181,.09),transparent 40%)}.tasks-hint-card h3{margin:4px 0 7px;font:20px/1.05 var(--serif);font-weight:500;color:#dce6e6}.tasks-hint-card p{margin:0;font-size:7px;line-height:1.6;color:#677579}.tasks-hint-card button{margin-top:12px;width:100%;padding:8px 9px;border:1px solid rgba(91,195,216,.10);border-radius:8px;background:rgba(54,155,177,.06);color:#8fcfdd;font-size:7px;cursor:pointer}.tasks-hint-card button:hover{background:rgba(54,155,177,.11)}
 @media(max-width:1380px){.tasks-page-shell{padding:18px 22px 16px}.tasks-page-header h1{font-size:38px}.tasks-layout{grid-template-columns:minmax(0,1fr) 280px}.tasks-capture{grid-template-columns:30px minmax(0,1fr) 96px 90px 72px}}
 @media(max-height:800px){.tasks-page-shell{padding-top:14px;gap:9px}.tasks-page-header h1{font-size:34px;margin-top:4px}.tasks-capture{padding-top:8px;padding-bottom:8px}.task-item{padding-top:7px;padding-bottom:7px}.tasks-focus-ring{width:92px;height:92px}.tasks-hint-card p{line-height:1.45}}
+
+/* =========================
+   V11 — HOMELAB IDENTITY + COMMAND BAR
+========================= */
+.brand-block { display:flex; align-items:center; min-height:72px; }
+.brand { font-size:21px; letter-spacing:.10em; }
+.brand-sub { display:none; }
+
+.topbar {
+  grid-template-columns: 285px minmax(360px, 1fr) minmax(260px, 380px);
+  gap: 22px;
+}
+.motto { display:none; }
+.command-bar {
+  justify-self:center;
+  width:min(650px, 100%);
+  height:39px;
+  display:grid;
+  grid-template-columns:28px 1fr auto;
+  align-items:center;
+  border:1px solid rgba(116,205,223,.14);
+  border-radius:12px;
+  padding:0 11px;
+  background:linear-gradient(180deg, rgba(9,18,22,.88), rgba(6,12,15,.88));
+  box-shadow:0 0 0 1px rgba(255,255,255,.012), 0 12px 30px rgba(0,0,0,.16);
+  transition:border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+.command-bar:focus-within {
+  border-color:rgba(95,213,238,.38);
+  box-shadow:0 0 0 1px rgba(68,185,211,.12), 0 0 28px rgba(50,173,204,.08), 0 12px 30px rgba(0,0,0,.18);
+  background:rgba(7,16,20,.96);
+}
+.command-prefix { color:#65d6ed; font-size:18px; transform:translateY(-1px); }
+.command-bar input { min-width:0; height:100%; border:0; outline:0; background:transparent; color:#dbe5e7; font-size:10px; letter-spacing:.015em; }
+.command-bar input::placeholder { color:#687679; }
+.command-bar kbd { color:#53686d; }
+.top-actions { gap:16px; }
+.top-search { display:none; }
+
+.server-hero { cursor:pointer; }
+.server-open-hint {
+  position:absolute;
+  right:7%;
+  bottom:14%;
+  z-index:4;
+  color:rgba(117,225,242,.72);
+  font-size:7px;
+  letter-spacing:.24em;
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity .18s ease, transform .18s ease;
+  pointer-events:none;
+}
+.server-hero:hover .server-open-hint { opacity:1; transform:translateY(0); }
+.server-hero:hover .server-photo { transform:scale(1.015); filter:brightness(.66) saturate(.82) contrast(1.08); }
+.server-photo { transition:transform .35s ease, filter .35s ease; }
+
+.machine-world .health-card,
+.machine-world .runtime-card-wrap,
+.machine-world .services-card,
+.machine-world .events-card { transition:border-color .16s ease, background .16s ease; }
+.machine-world .health-card:hover,
+.machine-world .runtime-card-wrap:hover,
+.machine-world .services-card:hover,
+.machine-world .events-card:hover { border-color:rgba(82,199,223,.12); }
+
+@media (max-width: 1280px) {
+  .topbar { grid-template-columns:230px minmax(300px,1fr) minmax(220px,300px); gap:14px; }
+  .command-bar { width:min(520px,100%); }
+  .top-health { font-size:8px; }
+}

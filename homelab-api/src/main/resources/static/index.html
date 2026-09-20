@@ -3,15 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>HOME — MY SECOND BRAIN</title>
+  <title>HOMELAB</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="app-shell">
     <aside class="sidebar">
       <div class="brand-block">
-        <div class="brand">HOME</div>
-        <div class="brand-sub">MY SECOND BRAIN</div>
+        <div class="brand">HOMELAB</div>
       </div>
 
       <nav class="nav-list" aria-label="Main navigation">
@@ -22,7 +21,7 @@
         <button class="nav-item" data-view="Knowledge"><span>▢</span><b>Knowledge</b></button>
         <button class="nav-item" data-view="Photos"><span>▧</span><b>Photos</b></button>
         <button class="nav-item" data-view="Atlas"><span>⌗</span><b>Atlas</b></button>
-        <button class="nav-item" data-view="System"><span>✺</span><b>System</b></button>
+        <button class="nav-item" data-view="HomeLab"><span>✺</span><b>HomeLab</b></button>
         <button class="nav-item" data-view="Journey"><span>◉</span><b>Journey</b></button>
         <button class="nav-item" data-view="Settings"><span>⚙</span><b>Settings</b></button>
       </nav>
@@ -30,7 +29,7 @@
       <div class="sidebar-footer">
         <div class="mantra-line"></div>
         <p>A CLEARER<br>MIND.<br>A RICHER<br>LIFE.</p>
-        <small>v0.13.0</small>
+        <small>v0.14.0</small>
       </div>
     </aside>
 
@@ -46,15 +45,14 @@
           <strong id="topTime">—</strong>
         </div>
 
-        <div class="motto">A BRIDGE BETWEEN SELF AND SYSTEM</div>
+        <label class="command-bar" aria-label="Command line">
+          <span class="command-prefix">›</span>
+          <input id="search" type="text" placeholder="Search, open a module, or run a command…" autocomplete="off" />
+          <kbd>Ctrl K</kbd>
+        </label>
 
         <div class="top-actions">
-          <label class="top-search">
-            <span>⌕</span>
-            <input id="search" type="text" placeholder="Search anything..." autocomplete="off" />
-            <kbd>Ctrl K</kbd>
-          </label>
-          <div class="top-health"><i class="status-dot live"></i><span id="topHealthText">Checking systems…</span></div>
+          <div class="top-health"><i class="status-dot live"></i><span id="topHealthText">Checking HomeLab…</span></div>
           <button class="avatar" aria-label="Account">◎</button>
         </div>
       </header>
@@ -195,16 +193,16 @@
           </div>
         </section>
 
-        <section class="machine-world">
-          <div class="server-hero">
+        <section class="machine-world" data-open-homelab>
+          <div class="server-hero" data-open-homelab role="button" tabindex="0" aria-label="Open HomeLab infrastructure">
             <img class="server-photo" src="assets/server-room.webp" alt="" aria-hidden="true" />
             <div class="server-photo-veil"></div>
-            <div class="server-copy">DIFFERENT SYSTEMS.<br>A MORE CAPABLE YOU.</div>
+            <div class="server-copy">HOMELAB<br>PRIVATE INFRASTRUCTURE.</div><div class="server-open-hint">OPEN HOMELAB →</div>
           </div>
 
           <div class="machine-content">
             <article class="health-card section-card clear-card">
-              <div class="section-title">SYSTEM HEALTH <span>01</span></div>
+              <div class="section-title">HOMELAB HEALTH <span>01</span></div>
               <div class="health-grid">
                 <div class="health-ring" id="healthRing"><div><strong id="healthCount">0/4</strong><span>Online</span></div></div>
                 <div class="health-list">
@@ -363,7 +361,7 @@
         </div>
       </section>
 
-      <section class="app-view system-page-view" id="view-system" aria-label="HomeLab system workspace">
+      <section class="app-view system-page-view" id="view-homelab" aria-label="HomeLab infrastructure workspace">
         <div class="system-page-atmosphere" aria-hidden="true">
           <img src="assets/server-room.webp" alt="" />
           <div></div>
@@ -372,9 +370,9 @@
         <div class="system-page-shell">
           <header class="system-page-header">
             <div>
-              <div class="system-page-eyebrow"><span class="status-dot live"></span> HOME SYSTEM · PRIVATE INFRASTRUCTURE</div>
-              <h1>Infrastructure</h1>
-              <p>My personal HomeLab, services and connections.</p>
+              <div class="system-page-eyebrow"><span class="status-dot live"></span> HOMELAB · PRIVATE INFRASTRUCTURE</div>
+              <h1>HomeLab</h1>
+              <p>Infrastructure, services and connections — private and under your control.</p>
             </div>
             <div class="system-page-summary">
               <div><span>SERVICES</span><strong>4 tracked</strong></div>
@@ -484,17 +482,13 @@
 
             <section class="system-surface recent-system-events">
               <div class="system-card-title"><span>Recent Events</span><small>02</small></div>
-              <div class="system-event-list" id="systemEventList">
-                <div><i class="status-dot live"></i><p><b>Memory layer connected</b><small>Long-term recall verified across conversations</small></p><time>today</time></div>
-                <div><i class="status-dot live"></i><p><b>SearXNG integrated</b><small>Local search backend available to HOME AI</small></p><time>today</time></div>
-                <div><i class="status-dot live"></i><p><b>AI workspace deployed</b><small>Full chat view is active</small></p><time>today</time></div>
-              </div>
+              <div class="system-event-list" id="systemEventList"></div>
             </section>
 
             <section class="system-surface selected-service-card">
               <div class="system-card-title"><span>Selected Service</span><small>03</small></div>
-              <div class="selected-service-head"><span class="arch-icon ubuntu">◉</span><div><b>Ubuntu Server</b><small><i class="status-dot live"></i>Configured</small></div></div>
-              <dl><div><dt>Hostname</dt><dd>homelab</dd></div><div><dt>Host-only</dt><dd>192.168.56.101</dd></div><div><dt>SSH</dt><dd>Active</dd></div><div><dt>Role</dt><dd>Server VM</dd></div></dl>
+              <div class="selected-service-head"><span class="arch-icon ubuntu" id="selectedServiceIcon">◉</span><div><b id="selectedServiceName">Ubuntu Server</b><small><i class="status-dot live" id="selectedServiceDot"></i><span id="selectedServiceStatus">Configured</span></small></div></div>
+              <dl id="selectedServiceDetails"><div><dt>Hostname</dt><dd>homelab</dd></div><div><dt>Host-only</dt><dd>192.168.56.101</dd></div><div><dt>SSH</dt><dd>Active</dd></div><div><dt>Role</dt><dd>Server VM</dd></div></dl>
               <div class="selected-actions"><button type="button" data-system-action="Logs">View logs</button><button type="button" data-system-action="Terminal">Open terminal</button></div>
             </section>
 

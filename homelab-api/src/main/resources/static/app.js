@@ -116,19 +116,29 @@ function timeAgo(ts) {
 }
 
 function renderEvents() {
-  if (!eventList) return;
-  if (!events.length) {
-    eventList.innerHTML = '<div class="event-row info"><span>now</span><i class="status-dot live"></i><strong>Dashboard session started</strong><b>Info</b></div>';
-    return;
+  const systemEventList = document.getElementById('systemEventList');
+  const visibleEvents = events.length ? events : [{ text: 'Dashboard session started', type: 'info', time: Date.now() }];
+
+  if (eventList) {
+    eventList.innerHTML = visibleEvents.map((event) => `
+      <div class="event-row ${event.type}">
+        <span>${timeAgo(event.time)}</span>
+        <i class="status-dot ${event.type === 'warn' ? '' : 'live'}"></i>
+        <strong>${escapeHtml(event.text)}</strong>
+        <b>${event.type === 'success' ? 'Success' : event.type === 'warn' ? 'Warn' : 'Info'}</b>
+      </div>
+    `).join('');
   }
-  eventList.innerHTML = events.map((event) => `
-    <div class="event-row ${event.type}">
-      <span>${timeAgo(event.time)}</span>
-      <i class="status-dot live"></i>
-      <strong>${escapeHtml(event.text)}</strong>
-      <b>${event.type === 'success' ? 'Success' : event.type === 'warn' ? 'Warn' : 'Info'}</b>
-    </div>
-  `).join('');
+
+  if (systemEventList) {
+    systemEventList.innerHTML = visibleEvents.slice(0, 4).map((event) => `
+      <div>
+        <i class="status-dot ${event.type === 'warn' ? '' : 'live'}"></i>
+        <p><b>${escapeHtml(event.text)}</b><small>${event.type === 'warn' ? 'Needs attention' : 'Synced from HomeLab overview'}</small></p>
+        <time>${timeAgo(event.time)}</time>
+      </div>
+    `).join('');
+  }
 }
 
 async function loadMemory() {
@@ -354,16 +364,45 @@ function clearCompletedTasks() {
 async function submitSearch() {
   const value = search.value.trim();
   if (!value) return;
+
+  const normalized = value.toLowerCase();
+  const commandMap = new Map([
+    ['/home', 'Home'], ['home', 'Home'],
+    ['/ai', 'AI'], ['ai', 'AI'],
+    ['/tasks', 'Tasks'], ['tasks', 'Tasks'],
+    ['/homelab', 'HomeLab'], ['homelab', 'HomeLab'], ['/system', 'HomeLab'], ['system', 'HomeLab'],
+    ['/journey', 'Journey'], ['journey', 'Journey']
+  ]);
+
+  if (commandMap.has(normalized)) {
+    openView(commandMap.get(normalized));
+    search.value = '';
+    search.blur();
+    showToast(`Opened ${commandMap.get(normalized)}`);
+    return;
+  }
+
+  if (normalized.startsWith('/ask ')) {
+    const prompt = value.slice(5).trim();
+    openView('AI');
+    aiPagePrompt.value = prompt;
+    autosizeAiTextarea();
+    setTimeout(() => aiPagePrompt.focus(), 80);
+    search.value = '';
+    return;
+  }
+
+  const webQuery = normalized.startsWith('/web ') ? value.slice(5).trim() : value;
   searchResultsBody.textContent = 'Searching…';
   searchResults.classList.add('show');
 
   try {
-    const response = await fetch(`/api/search?q=${encodeURIComponent(value)}`);
+    const response = await fetch(`/api/search?q=${encodeURIComponent(webQuery)}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const text = await response.text();
     searchResultsBody.textContent = text;
     setService('searxng', true, 'Running');
-    addEvent(`Web search completed · ${value}`, 'success');
+    addEvent(`Web search completed · ${webQuery}`, 'success');
   } catch (error) {
     searchResultsBody.textContent = `Search unavailable\n${error.message}`;
     setService('searxng', false, 'Unavailable');
@@ -496,6 +535,31 @@ function updateSystemWorkspace() {
     const degrees = Math.round((count / total) * 360);
     ring.style.background = `conic-gradient(#58e2a0 ${degrees}deg, rgba(52,137,99,.18) ${degrees}deg)`;
   }
+  renderEvents();
+}
+
+const systemServiceDetails = {
+  api: { name: 'Spring Boot API', icon: 'S', status: 'Running', rows: [['Port','8080'],['Java','21'],['Memory','Connected'],['Role','Backend API']] },
+  postgres: { name: 'PostgreSQL', icon: 'P', status: 'Running', rows: [['Port','5432'],['Database','homelab'],['Storage','Persistent'],['Role','Database']] },
+  ollama: { name: 'Ollama', icon: '◌', status: 'Standby', rows: [['Endpoint','192.168.56.1:11434'],['GPU','RTX 2060'],['Model','Qwen 3.5 4B'],['Scope','Host-only']] },
+  searxng: { name: 'SearXNG', icon: '⌕', status: 'Standby', rows: [['Port','8888 → 8080'],['API','JSON enabled'],['Network','postgres_default'],['Role','Web search']] }
+};
+
+function selectSystemService(key, open = true) {
+  const info = systemServiceDetails[key];
+  if (!info) return;
+  const online = Boolean(serviceState[key]);
+  const name = document.getElementById('selectedServiceName');
+  const icon = document.getElementById('selectedServiceIcon');
+  const status = document.getElementById('selectedServiceStatus');
+  const dot = document.getElementById('selectedServiceDot');
+  const details = document.getElementById('selectedServiceDetails');
+  if (name) name.textContent = info.name;
+  if (icon) icon.textContent = info.icon;
+  if (status) status.textContent = online ? 'Verified online' : 'Not verified this session';
+  if (dot) dot.classList.toggle('live', online);
+  if (details) details.innerHTML = info.rows.map(([label,value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
+  if (open) openView('HomeLab');
 }
 
 document.querySelectorAll('[data-system-tab]').forEach((button) => {
@@ -507,8 +571,9 @@ document.querySelectorAll('[data-system-action]').forEach((button) => {
 });
 
 function openView(viewName) {
-  const normalized = String(viewName || '').toLowerCase();
-  const available = normalized === 'home' || normalized === 'ai' || normalized === 'tasks' || normalized === 'system' || normalized === 'journey';
+  let normalized = String(viewName || '').toLowerCase();
+  if (normalized === 'system') normalized = 'homelab';
+  const available = normalized === 'home' || normalized === 'ai' || normalized === 'tasks' || normalized === 'homelab' || normalized === 'journey';
   if (!available) {
     showToast(`${viewName} · next module to design`);
     return;
@@ -524,7 +589,7 @@ function openView(viewName) {
 
   history.replaceState(null, '', normalized === 'home' ? location.pathname : `${location.pathname}#${normalized}`);
   if (normalized === 'ai') setTimeout(() => aiPagePrompt.focus(), 80);
-  if (normalized === 'system') updateSystemWorkspace();
+  if (normalized === 'homelab') updateSystemWorkspace();
   if (normalized === 'tasks') setTimeout(() => document.getElementById('taskQuickInput')?.focus(), 60);
 }
 
@@ -596,10 +661,23 @@ document.querySelectorAll('.nav-item').forEach((button) => {
 document.querySelectorAll('[data-service-action]').forEach((button) => {
   button.addEventListener('click', () => {
     const key = button.dataset.serviceAction;
-    showToast(`${button.querySelector('b').textContent}: ${serviceState[key] ? 'verified online' : 'not verified this session'}`);
+    selectSystemService(key, true);
   });
 });
 
+
+document.querySelectorAll('[data-open-homelab]').forEach((element) => {
+  element.addEventListener('click', (event) => {
+    if (event.target.closest('[data-service-action]')) return;
+    openView('HomeLab');
+  });
+  element.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openView('HomeLab');
+    }
+  });
+});
 
 document.querySelectorAll('.journey-reflect').forEach((button) => {
   button.addEventListener('click', () => {
@@ -670,5 +748,5 @@ loadMemory();
 updateAiPageWebState(false);
 
 const hashView = location.hash.toLowerCase();
-const initialView = hashView === '#ai' ? 'AI' : hashView === '#tasks' ? 'Tasks' : hashView === '#system' ? 'System' : hashView === '#journey' ? 'Journey' : 'Home';
+const initialView = hashView === '#ai' ? 'AI' : hashView === '#tasks' ? 'Tasks' : (hashView === '#homelab' || hashView === '#system') ? 'HomeLab' : hashView === '#journey' ? 'Journey' : 'Home';
 openView(initialView);
