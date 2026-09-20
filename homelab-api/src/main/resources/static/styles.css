@@ -283,3 +283,148 @@ dt { color: #627073; } dd { margin: 0; color: #aeb8ba; display: flex; align-item
   .health-ring::before { width: 74px; height: 74px; }
   .service-card { height: 55px; }
 }
+
+/* === V5 photographic atmosphere ========================================== */
+.hero-media {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #080a0b;
+}
+.hero-photo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: 52% 56%;
+  filter: brightness(.62) saturate(.78) contrast(1.08);
+  transform: scale(1.015);
+}
+.hero-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(6,7,7,.24) 0%, rgba(8,8,8,.08) 48%, rgba(8,10,11,.48) 100%),
+    linear-gradient(0deg, rgba(5,7,8,.62) 0%, transparent 46%, rgba(4,6,7,.10) 100%),
+    radial-gradient(circle at 72% 75%, rgba(227,139,80,.17), transparent 23%);
+}
+.hero-atmosphere {
+  background:
+    radial-gradient(circle at 74% 72%, rgba(223,138,79,.17), transparent 17%),
+    linear-gradient(90deg, rgba(8,9,9,.05), rgba(9,10,10,.02) 55%, rgba(6,10,12,.28));
+  mix-blend-mode: screen;
+  opacity: .75;
+}
+.sunset-glow {
+  right: 16%;
+  bottom: 16%;
+  width: 150px;
+  height: 74px;
+  opacity: .72;
+}
+.hero-copy {
+  text-shadow: 0 8px 42px rgba(0,0,0,.78);
+}
+.hero-quote {
+  text-shadow: 0 5px 24px rgba(0,0,0,.72);
+}
+
+.focus-visual {
+  position: relative;
+  isolation: isolate;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.035);
+}
+.focus-visual img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: 52% 43%;
+  filter: brightness(.66) saturate(.76) contrast(1.10);
+  transform: scale(1.03);
+}
+.focus-visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5,8,9,.02), rgba(5,7,8,.34));
+  pointer-events: none;
+}
+
+.project-thumb {
+  isolation: isolate;
+  background: #081012;
+}
+.project-thumb::before { display: none; }
+.project-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 51% 55%;
+  filter: brightness(.56) saturate(.72) contrast(1.10);
+  transform: scale(1.035);
+  z-index: 0;
+}
+.project-thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(4,6,7,.10), rgba(4,7,8,.50)),
+    radial-gradient(circle at 70% 42%, rgba(202,124,73,.16), transparent 38%);
+}
+.project-thumb-glow { z-index: 2; }
+.project-thumb span { z-index: 3; }
+
+.server-hero {
+  background: #061116;
+}
+.server-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 41% 58%;
+  filter: brightness(.55) saturate(.78) contrast(1.12) hue-rotate(-5deg);
+  transform: scale(1.018);
+}
+.server-photo-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(90deg, rgba(3,10,13,.08) 0%, rgba(4,12,15,.10) 45%, rgba(3,11,14,.40) 100%),
+    linear-gradient(0deg, rgba(3,10,12,.74) 0%, transparent 49%, rgba(4,10,12,.15) 100%),
+    radial-gradient(circle at 28% 47%, rgba(43,169,198,.10), transparent 30%);
+  pointer-events: none;
+}
+.server-copy {
+  z-index: 4;
+  text-shadow: 0 5px 22px rgba(0,0,0,.76);
+}
+.server-floor, .rack-group { display: none; }
+
+/* Blend the photographic worlds into the central neural bridge. */
+.personal-world::after,
+.machine-world::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 46px;
+  z-index: 8;
+  pointer-events: none;
+}
+.personal-world::after {
+  right: 0;
+  background: linear-gradient(90deg, transparent, rgba(6,13,16,.44));
+}
+.machine-world::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(6,13,16,.50), transparent);
+}
