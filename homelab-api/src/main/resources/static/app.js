@@ -177,29 +177,178 @@ async function loadMemory() {
   }
 }
 
-function updateTasks() {
-  const boxes = [...document.querySelectorAll('#taskList input[type="checkbox"]')];
-  if (!boxes.length) return;
-  const complete = boxes.filter((box) => box.checked).length;
-  const total = boxes.length;
-  const percent = Math.round((complete / total) * 100);
+const TASKS_STORAGE_KEY = 'homeTaskItemsV2';
+let taskFilter = 'all';
+let taskItems = [];
+
+function seedTasks() {
+  return [
+    { id: createConversationId(), title: 'Review Home AI memory', bucket: 'today', priority: 'normal', done: true, createdAt: Date.now() - 6000 },
+    { id: createConversationId(), title: 'Study Java — Spring Boot', bucket: 'today', priority: 'normal', done: true, createdAt: Date.now() - 5000 },
+    { id: createConversationId(), title: 'Check HomeLab services', bucket: 'today', priority: 'normal', done: true, createdAt: Date.now() - 4000 },
+    { id: createConversationId(), title: 'Add tasks I need to remember', bucket: 'today', priority: 'high', done: false, createdAt: Date.now() - 3000 },
+    { id: createConversationId(), title: 'Design readPage tool', bucket: 'upcoming', priority: 'normal', done: false, createdAt: Date.now() - 2000 },
+    { id: createConversationId(), title: 'Plan next dashboard module', bucket: 'upcoming', priority: 'low', done: false, createdAt: Date.now() - 1000 }
+  ];
+}
+
+function loadTaskItems() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY));
+    taskItems = Array.isArray(saved) ? saved : seedTasks();
+  } catch (_) {
+    taskItems = seedTasks();
+  }
+  saveTaskItems(false);
+  renderTaskWorkspace();
+}
+
+function saveTaskItems(render = true) {
+  localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(taskItems));
+  if (render) renderTaskWorkspace();
+}
+
+function bucketLabel(bucket) {
+  return bucket === 'today' ? 'Today' : bucket === 'upcoming' ? 'Upcoming' : 'Someday';
+}
+
+function renderHomeTasks() {
+  const list = document.getElementById('taskList');
+  if (!list) return;
+  const today = taskItems.filter((task) => task.bucket === 'today').slice(0, 6);
+  list.innerHTML = today.length ? today.map((task) => `
+    <label><input type="checkbox" data-home-task-id="${task.id}" ${task.done ? 'checked' : ''}/><span>${escapeHtml(task.title)}</span></label>
+  `).join('') : '<div class="tasks-empty-home">No tasks for today.</div>';
+  list.querySelectorAll('[data-home-task-id]').forEach((box) => {
+    box.addEventListener('change', () => toggleTask(box.dataset.homeTaskId, box.checked));
+  });
+
+  const complete = today.filter((task) => task.done).length;
+  const total = today.length;
+  const percent = total ? Math.round((complete / total) * 100) : 0;
   document.getElementById('taskSummary').textContent = `${complete} of ${total}`;
   document.getElementById('taskPercent').textContent = `${percent}%`;
   document.getElementById('taskProgress').style.width = `${percent}%`;
-  localStorage.setItem('homeTasks', JSON.stringify(boxes.map((box) => box.checked)));
 }
 
-function restoreTasks() {
-  const boxes = [...document.querySelectorAll('#taskList input[type="checkbox"]')];
-  if (!boxes.length) return;
-  try {
-    const saved = JSON.parse(localStorage.getItem('homeTasks'));
-    if (Array.isArray(saved) && saved.length === boxes.length) {
-      boxes.forEach((box, index) => { box.checked = Boolean(saved[index]); });
-    }
-  } catch (_) {}
-  boxes.forEach((box) => box.addEventListener('change', updateTasks));
-  updateTasks();
+function renderTaskWorkspace() {
+  renderHomeTasks();
+  const sections = document.getElementById('tasksSections');
+  if (!sections) return;
+
+  const open = taskItems.filter((task) => !task.done).length;
+  const done = taskItems.filter((task) => task.done).length;
+  const today = taskItems.filter((task) => task.bucket === 'today');
+  const todayDone = today.filter((task) => task.done).length;
+  const todayPercent = today.length ? Math.round((todayDone / today.length) * 100) : 0;
+  document.getElementById('tasksTodayCount').textContent = String(today.length);
+  document.getElementById('tasksOpenCount').textContent = String(open);
+  document.getElementById('tasksDoneCount').textContent = String(done);
+  document.getElementById('tasksFocusPercent').textContent = `${todayPercent}%`;
+  document.getElementById('tasksFocusRing').style.background = `conic-gradient(#62d9ab ${Math.round(todayPercent * 3.6)}deg, rgba(58,143,111,.15) 0deg)`;
+  document.getElementById('tasksFocusCopy').textContent = today.length
+    ? `${todayDone} of ${today.length} tasks complete. ${Math.max(0, today.length - todayDone)} left for today.`
+    : 'Nothing scheduled yet. Add what matters today.';
+
+  let filtered = [...taskItems];
+  if (taskFilter === 'done') filtered = filtered.filter((task) => task.done);
+  else if (taskFilter !== 'all') filtered = filtered.filter((task) => task.bucket === taskFilter && !task.done);
+  else filtered = filtered.filter((task) => !task.done);
+
+  const buckets = taskFilter === 'done' ? ['done'] : ['today', 'upcoming', 'someday'];
+  const groups = buckets.map((bucket) => {
+    const items = bucket === 'done' ? filtered : filtered.filter((task) => task.bucket === bucket);
+    if (!items.length) return '';
+    const title = bucket === 'done' ? 'COMPLETED' : bucketLabel(bucket).toUpperCase();
+    return `<section class="task-group"><div class="task-group-head"><h2>${title}</h2><span>${items.length}</span></div>${items.map(renderTaskItem).join('')}</section>`;
+  }).join('');
+
+  sections.innerHTML = groups || '<div class="tasks-empty"><b>Clear mind.</b>No tasks in this view.</div>';
+  bindTaskRows();
+  renderPriorityTasks();
+}
+
+function renderTaskItem(task) {
+  return `<div class="task-item ${task.done ? 'completed' : ''}" data-task-id="${task.id}">
+    <input class="task-check" type="checkbox" ${task.done ? 'checked' : ''} aria-label="Complete task" />
+    <div class="task-copy"><span class="task-title">${escapeHtml(task.title)}</span><div class="task-meta"><span>${bucketLabel(task.bucket)}</span></div></div>
+    <span class="task-priority ${task.priority}">${task.priority}</span>
+    <button class="task-move" type="button" title="Move task">↻</button>
+    <button class="task-delete" type="button" title="Delete task">×</button>
+  </div>`;
+}
+
+function bindTaskRows() {
+  document.querySelectorAll('.task-item').forEach((row) => {
+    const id = row.dataset.taskId;
+    row.querySelector('.task-check')?.addEventListener('change', (event) => toggleTask(id, event.target.checked));
+    row.querySelector('.task-delete')?.addEventListener('click', () => deleteTask(id));
+    row.querySelector('.task-move')?.addEventListener('click', () => cycleTaskBucket(id));
+    row.querySelector('.task-title')?.addEventListener('dblclick', () => editTask(id));
+  });
+}
+
+function addTaskFromComposer() {
+  const input = document.getElementById('taskQuickInput');
+  const title = input?.value.trim();
+  if (!title) { input?.focus(); return; }
+  taskItems.unshift({
+    id: createConversationId(), title,
+    bucket: document.getElementById('taskQuickBucket').value,
+    priority: document.getElementById('taskQuickPriority').value,
+    done: false, createdAt: Date.now()
+  });
+  input.value = '';
+  saveTaskItems();
+  showToast('Task added');
+  input.focus();
+}
+
+function toggleTask(id, done) {
+  const task = taskItems.find((item) => item.id === id);
+  if (!task) return;
+  task.done = Boolean(done);
+  saveTaskItems();
+}
+
+function deleteTask(id) {
+  taskItems = taskItems.filter((item) => item.id !== id);
+  saveTaskItems();
+  showToast('Task removed');
+}
+
+function cycleTaskBucket(id) {
+  const task = taskItems.find((item) => item.id === id);
+  if (!task) return;
+  const order = ['today', 'upcoming', 'someday'];
+  task.bucket = order[(order.indexOf(task.bucket) + 1) % order.length];
+  saveTaskItems();
+  showToast(`Moved to ${bucketLabel(task.bucket)}`);
+}
+
+function editTask(id) {
+  const task = taskItems.find((item) => item.id === id);
+  if (!task) return;
+  const next = prompt('Edit task', task.title);
+  if (next === null) return;
+  const clean = next.trim();
+  if (!clean) return;
+  task.title = clean;
+  saveTaskItems();
+}
+
+function renderPriorityTasks() {
+  const target = document.getElementById('tasksPriorityList');
+  if (!target) return;
+  const high = taskItems.filter((task) => !task.done && task.priority === 'high').slice(0, 5);
+  target.innerHTML = high.length ? high.map((task) => `<div class="tasks-priority-row"><i></i><span>${escapeHtml(task.title)}</span><small>${bucketLabel(task.bucket)}</small></div>`).join('') : '<div class="tasks-priority-empty">No high-priority tasks. Nice.</div>';
+}
+
+function clearCompletedTasks() {
+  const before = taskItems.length;
+  taskItems = taskItems.filter((task) => !task.done);
+  saveTaskItems();
+  showToast(`${before - taskItems.length} completed tasks cleared`);
 }
 
 async function submitSearch() {
@@ -359,7 +508,7 @@ document.querySelectorAll('[data-system-action]').forEach((button) => {
 
 function openView(viewName) {
   const normalized = String(viewName || '').toLowerCase();
-  const available = normalized === 'home' || normalized === 'ai' || normalized === 'system' || normalized === 'journey';
+  const available = normalized === 'home' || normalized === 'ai' || normalized === 'tasks' || normalized === 'system' || normalized === 'journey';
   if (!available) {
     showToast(`${viewName} · next module to design`);
     return;
@@ -376,6 +525,7 @@ function openView(viewName) {
   history.replaceState(null, '', normalized === 'home' ? location.pathname : `${location.pathname}#${normalized}`);
   if (normalized === 'ai') setTimeout(() => aiPagePrompt.focus(), 80);
   if (normalized === 'system') updateSystemWorkspace();
+  if (normalized === 'tasks') setTimeout(() => document.getElementById('taskQuickInput')?.focus(), 60);
 }
 
 webToggle.addEventListener('click', () => {
@@ -479,6 +629,27 @@ document.getElementById('journeyAddMoment')?.addEventListener('click', () => {
   showToast('Add Moment composer · next Journey iteration');
 });
 
+
+document.getElementById('taskAddButton')?.addEventListener('click', addTaskFromComposer);
+document.getElementById('taskQuickInput')?.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') addTaskFromComposer();
+});
+document.querySelectorAll('[data-task-filter]').forEach((button) => {
+  button.addEventListener('click', () => {
+    taskFilter = button.dataset.taskFilter;
+    document.querySelectorAll('[data-task-filter]').forEach((item) => item.classList.toggle('active', item === button));
+    renderTaskWorkspace();
+  });
+});
+document.getElementById('clearCompletedTasks')?.addEventListener('click', clearCompletedTasks);
+document.getElementById('tasksAskAi')?.addEventListener('click', () => {
+  const openTasks = taskItems.filter((task) => !task.done).map((task) => `- ${task.title} (${bucketLabel(task.bucket)}, ${task.priority})`).join('\n');
+  openView('AI');
+  aiPagePrompt.value = `Help me plan and prioritize these tasks:\n${openTasks || '- No open tasks yet'}`;
+  autosizeAiTextarea();
+  setTimeout(() => aiPagePrompt.focus(), 80);
+});
+
 document.addEventListener('keydown', (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
@@ -493,11 +664,11 @@ document.addEventListener('keydown', (event) => {
 setInterval(updateClock, 15_000);
 setInterval(renderEvents, 30_000);
 updateClock();
-restoreTasks();
+loadTaskItems();
 renderEvents();
 loadMemory();
 updateAiPageWebState(false);
 
 const hashView = location.hash.toLowerCase();
-const initialView = hashView === '#ai' ? 'AI' : hashView === '#system' ? 'System' : hashView === '#journey' ? 'Journey' : 'Home';
+const initialView = hashView === '#ai' ? 'AI' : hashView === '#tasks' ? 'Tasks' : hashView === '#system' ? 'System' : hashView === '#journey' ? 'Journey' : 'Home';
 openView(initialView);

@@ -30,7 +30,7 @@
       <div class="sidebar-footer">
         <div class="mantra-line"></div>
         <p>A CLEARER<br>MIND.<br>A RICHER<br>LIFE.</p>
-        <small>v0.12.0</small>
+        <small>v0.13.0</small>
       </div>
     </aside>
 
@@ -510,6 +510,77 @@
         </div>
       </section>
 
+
+
+      <section class="app-view tasks-page-view" id="view-tasks" aria-label="Tasks workspace">
+        <div class="tasks-page-shell">
+          <header class="tasks-page-header">
+            <div>
+              <div class="tasks-eyebrow"><span class="status-dot live"></span> HOME TASKS · INTENTIONS INTO ACTION</div>
+              <h1>Tasks</h1>
+              <p>Capture what matters, decide what is next, and keep the rest out of your head.</p>
+            </div>
+            <div class="tasks-header-stats">
+              <div><span>TODAY</span><strong id="tasksTodayCount">0</strong></div>
+              <div><span>OPEN</span><strong id="tasksOpenCount">0</strong></div>
+              <div><span>DONE</span><strong id="tasksDoneCount">0</strong></div>
+            </div>
+          </header>
+
+          <div class="tasks-layout">
+            <section class="tasks-main tasks-surface">
+              <div class="tasks-capture">
+                <div class="tasks-capture-icon">＋</div>
+                <input id="taskQuickInput" type="text" placeholder="Add a task…" autocomplete="off" />
+                <select id="taskQuickBucket" aria-label="Task bucket">
+                  <option value="today">Today</option>
+                  <option value="upcoming">Upcoming</option>
+                  <option value="someday">Someday</option>
+                </select>
+                <select id="taskQuickPriority" aria-label="Task priority">
+                  <option value="normal">Normal</option>
+                  <option value="high">High</option>
+                  <option value="low">Low</option>
+                </select>
+                <button id="taskAddButton" type="button">Add task</button>
+              </div>
+
+              <div class="tasks-toolbar">
+                <div class="tasks-filter-group" role="tablist" aria-label="Task filters">
+                  <button type="button" class="active" data-task-filter="all">All</button>
+                  <button type="button" data-task-filter="today">Today</button>
+                  <button type="button" data-task-filter="upcoming">Upcoming</button>
+                  <button type="button" data-task-filter="someday">Someday</button>
+                  <button type="button" data-task-filter="done">Done</button>
+                </div>
+                <button id="clearCompletedTasks" class="tasks-clear" type="button">Clear completed</button>
+              </div>
+
+              <div class="tasks-sections" id="tasksSections"></div>
+            </section>
+
+            <aside class="tasks-side">
+              <section class="tasks-surface tasks-focus-card">
+                <div class="tasks-card-head"><span>TODAY'S FOCUS</span><small>01</small></div>
+                <div class="tasks-focus-ring" id="tasksFocusRing"><strong id="tasksFocusPercent">0%</strong><span>complete</span></div>
+                <p id="tasksFocusCopy">Nothing scheduled yet. Add what matters today.</p>
+              </section>
+
+              <section class="tasks-surface tasks-priority-card">
+                <div class="tasks-card-head"><span>PRIORITY</span><small>02</small></div>
+                <div id="tasksPriorityList" class="tasks-priority-list"></div>
+              </section>
+
+              <section class="tasks-surface tasks-hint-card">
+                <div class="tasks-card-head"><span>HOME AI</span><small>03</small></div>
+                <h3>Turn thoughts into actions.</h3>
+                <p>Later HOME AI will be able to create, reschedule and complete tasks for you. For now this list stays local in your browser.</p>
+                <button id="tasksAskAi" type="button">Plan my tasks with HOME →</button>
+              </section>
+            </aside>
+          </div>
+        </div>
+      </section>
 
       <section class="app-view journey-page-view" id="view-journey" aria-label="Life journey workspace">
         <div class="journey-page-atmosphere" aria-hidden="true">
