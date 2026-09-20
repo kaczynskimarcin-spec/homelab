@@ -1,8 +1,6 @@
 package com.mindflow.homelabapi;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,10 +9,10 @@ import java.util.List;
 @RequestMapping("/api/tasks")
 public class TaskController {
 
-    private final TaskRepository taskRepository;
+    private final TaskService taskService;
 
-    public TaskController(TaskRepository taskRepository) {
-        this.taskRepository = taskRepository;
+    public TaskController(TaskService taskService) {
+        this.taskService = taskService;
     }
 
     public record TaskRequest(
@@ -27,32 +25,18 @@ public class TaskController {
 
     @GetMapping
     public List<Task> getTasks() {
-        return taskRepository.findAll();
+        return taskService.getAllTasks();
     }
 
     @PostMapping
     public Task createTask(
             @RequestBody TaskRequest request
     ) {
-        Task task = new Task();
-
-        task.setTitle(
-                validateTitle(request.title())
+        return taskService.createTask(
+                request.title(),
+                request.dueDate(),
+                request.priority()
         );
-
-        task.setCompleted(false);
-
-        task.setDueDate(
-                request.dueDate()
-        );
-
-        task.setPriority(
-                request.priority() != null
-                        ? request.priority()
-                        : TaskPriority.NORMAL
-        );
-
-        return taskRepository.save(task);
     }
 
     @PutMapping("/{id}")
@@ -60,70 +44,19 @@ public class TaskController {
             @PathVariable Integer id,
             @RequestBody TaskRequest request
     ) {
-        Task task = findTask(id);
-
-        task.setTitle(
-                validateTitle(request.title())
+        return taskService.updateTask(
+                id,
+                request.title(),
+                request.completed(),
+                request.dueDate(),
+                request.priority()
         );
-
-        if (request.completed() != null) {
-            task.setCompleted(
-                    request.completed()
-            );
-        }
-
-        task.setDueDate(
-                request.dueDate()
-        );
-
-        task.setPriority(
-                request.priority() != null
-                        ? request.priority()
-                        : TaskPriority.NORMAL
-        );
-
-        return taskRepository.save(task);
     }
 
     @DeleteMapping("/{id}")
     public void deleteTask(
             @PathVariable Integer id
     ) {
-        Task task = findTask(id);
-
-        taskRepository.delete(task);
-    }
-
-    private Task findTask(Integer id) {
-        return taskRepository
-                .findById(id)
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Task not found"
-                        )
-                );
-    }
-
-    private String validateTitle(String title) {
-
-        if (title == null || title.isBlank()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Task title cannot be empty"
-            );
-        }
-
-        String cleanedTitle =
-                title.strip();
-
-        if (cleanedTitle.length() > 255) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Task title cannot exceed 255 characters"
-            );
-        }
-
-        return cleanedTitle;
+        taskService.deleteTask(id);
     }
 }
