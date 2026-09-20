@@ -428,3 +428,189 @@ dt { color: #627073; } dd { margin: 0; color: #aeb8ba; display: flex; align-item
   left: 0;
   background: linear-gradient(90deg, rgba(6,13,16,.50), transparent);
 }
+
+/* === V6 layout polish =====================================================
+   Explicit vertical rhythm prevents the project card from colliding with
+   Today / Current Focus and brings the left column closer to the reference.
+============================================================================ */
+.personal-world {
+  display: grid;
+  grid-template-rows: 39% 61%;
+}
+
+.hero {
+  height: auto;
+  min-height: 0;
+}
+
+.personal-content {
+  height: auto;
+  min-height: 0;
+  padding: 20px 7% 16px;
+  display: grid;
+  grid-template-rows: minmax(242px, 1fr) 178px;
+  gap: 18px;
+  overflow: hidden;
+}
+
+.personal-grid {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, .80fr);
+  gap: 24px;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.today-card,
+.focus-card-wrap {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.focus-card-wrap {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.focus-card {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.focus-visual {
+  flex: 0 0 96px;
+  height: 96px;
+}
+
+.focus-card h3 {
+  margin: 10px 4px 6px;
+  font-size: 18px;
+}
+
+.focus-card p {
+  margin: 0 4px;
+  min-height: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.focus-footer {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.project-wrap {
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 0;
+}
+
+.project-card {
+  height: 146px;
+  min-height: 0;
+  margin-top: 10px;
+  grid-template-columns: 118px minmax(0,1fr) 32px;
+  grid-template-rows: minmax(0,1fr) 24px 24px;
+  padding: 12px;
+  gap: 0 14px;
+}
+
+.project-thumb { min-height: 0; }
+.project-copy { min-width: 0; overflow: hidden; }
+.project-copy h3 { margin-top: 1px; font-size: 19px; }
+.project-copy p {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.project-tags { overflow: hidden; white-space: nowrap; }
+.project-tags span { flex: 0 0 auto; }
+
+/* Better crops — these use the real photographic assets. */
+.hero-photo {
+  object-position: 50% 52%;
+  filter: brightness(.58) saturate(.82) contrast(1.08);
+  transform: scale(1.01);
+}
+.hero-media::after {
+  background:
+    linear-gradient(90deg, rgba(6,7,7,.14) 0%, rgba(7,8,8,.04) 46%, rgba(8,10,11,.42) 100%),
+    linear-gradient(0deg, rgba(5,7,8,.58) 0%, transparent 44%, rgba(4,6,7,.08) 100%),
+    radial-gradient(circle at 72% 72%, rgba(227,139,80,.14), transparent 24%);
+}
+.focus-visual img {
+  object-position: 50% 42%;
+  filter: brightness(.62) saturate(.82) contrast(1.10);
+}
+.project-thumb img {
+  object-position: 50% 54%;
+  filter: brightness(.53) saturate(.78) contrast(1.10);
+}
+.server-photo {
+  object-position: 34% 53%;
+  filter: brightness(.50) saturate(.82) contrast(1.13) hue-rotate(-5deg);
+}
+.server-photo-veil {
+  background:
+    linear-gradient(90deg, rgba(3,10,13,.05) 0%, rgba(4,12,15,.08) 48%, rgba(3,11,14,.38) 100%),
+    linear-gradient(0deg, rgba(3,10,12,.82) 0%, rgba(3,10,12,.24) 31%, transparent 63%, rgba(4,10,12,.12) 100%),
+    radial-gradient(circle at 28% 47%, rgba(43,169,198,.11), transparent 31%);
+}
+
+/* Give HOME AI a stronger focal presence without changing behavior. */
+.orb-stage { width: 252px; height: 252px; }
+.ai-orb {
+  width: 178px;
+  height: 178px;
+  background:
+    radial-gradient(circle at 43% 34%, rgba(86,144,154,.32), transparent 21%),
+    radial-gradient(circle at 50% 46%, rgba(31,73,83,.54), rgba(9,23,28,.95) 58%, rgba(4,10,12,.99) 80%);
+  border-color: rgba(149,229,244,.54);
+  box-shadow:
+    0 0 34px rgba(67,194,220,.23),
+    0 0 110px rgba(52,156,177,.18),
+    inset 0 0 56px rgba(93,207,230,.08);
+}
+.orb-label strong { font-size: 22px; }
+.orb-label span { font-size: 13px; }
+.neural-map {
+  opacity: .96;
+  filter: drop-shadow(0 0 4px rgba(84,210,236,.05));
+}
+
+/* At laptop-height viewports, keep every block inside its lane. */
+@media (max-height: 860px) {
+  .personal-world { grid-template-rows: 37% 63%; }
+  .personal-content {
+    padding-top: 16px;
+    padding-bottom: 12px;
+    grid-template-rows: minmax(214px, 1fr) 154px;
+    gap: 14px;
+  }
+  .personal-grid { gap: 18px; }
+  .task-list { gap: 6px; }
+  .task-list label { font-size: 9px; }
+  .focus-visual { flex-basis: 78px; height: 78px; }
+  .focus-card h3 { font-size: 17px; margin-top: 8px; }
+  .focus-card p { font-size: 8px; line-height: 1.45; }
+  .project-card {
+    height: 126px;
+    grid-template-columns: 105px minmax(0,1fr) 28px;
+    grid-template-rows: minmax(0,1fr) 22px 22px;
+    padding: 10px;
+  }
+  .project-copy h3 { font-size: 18px; }
+  .project-copy p { font-size: 8px; }
+  .project-tags span { padding: 3px 6px; font-size: 6px; }
+  .orb-stage { width: 232px; height: 232px; }
+  .ai-orb { width: 166px; height: 166px; }
+}
