@@ -190,51 +190,156 @@ async function loadMemory() {
 const TASKS_STORAGE_KEY = 'homeTaskItemsV2';
 let taskFilter = 'all';
 let taskItems = [];
+let editingTaskId = null;
+
+function localDateISO(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseLocalDate(iso) {
+  if (!iso) return null;
+  const [year, month, day] = iso.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day, 12, 0, 0, 0);
+}
+
+function addDaysISO(iso, days) {
+  const date = parseLocalDate(iso) || new Date();
+  date.setDate(date.getDate() + days);
+  return localDateISO(date);
+}
+
+function todayISO() {
+  return localDateISO(new Date());
+}
+
+function tomorrowISO() {
+  return addDaysISO(todayISO(), 1);
+}
+
+function normalizeTask(task) {
+  const normalized = { ...task };
+  if (!Object.prototype.hasOwnProperty.call(normalized, 'dueDate')) {
+    normalized.dueDate = normalized.bucket === 'today'
+      ? todayISO()
+      : normalized.bucket === 'upcoming'
+        ? tomorrowISO()
+        : null;
+  }
+  normalized.bucket = taskBucket(normalized);
+  normalized.priority = ['low', 'normal', 'high'].includes(normalized.priority) ? normalized.priority : 'normal';
+  normalized.done = Boolean(normalized.done);
+  return normalized;
+}
 
 function seedTasks() {
+  const today = todayISO();
+  const tomorrow = addDaysISO(today, 1);
+  const nextWeek = addDaysISO(today, 5);
   return [
-    { id: createConversationId(), title: 'Review Home AI memory', bucket: 'today', priority: 'normal', done: true, createdAt: Date.now() - 6000 },
-    { id: createConversationId(), title: 'Study Java — Spring Boot', bucket: 'today', priority: 'normal', done: true, createdAt: Date.now() - 5000 },
-    { id: createConversationId(), title: 'Check HomeLab services', bucket: 'today', priority: 'normal', done: true, createdAt: Date.now() - 4000 },
-    { id: createConversationId(), title: 'Add tasks I need to remember', bucket: 'today', priority: 'high', done: false, createdAt: Date.now() - 3000 },
-    { id: createConversationId(), title: 'Design readPage tool', bucket: 'upcoming', priority: 'normal', done: false, createdAt: Date.now() - 2000 },
-    { id: createConversationId(), title: 'Plan next dashboard module', bucket: 'upcoming', priority: 'low', done: false, createdAt: Date.now() - 1000 }
-  ];
+    { id: createConversationId(), title: 'Review Home AI memory', dueDate: today, priority: 'normal', done: true, createdAt: Date.now() - 6000 },
+    { id: createConversationId(), title: 'Study Java — Spring Boot', dueDate: today, priority: 'normal', done: true, createdAt: Date.now() - 5000 },
+    { id: createConversationId(), title: 'Check HomeLab services', dueDate: today, priority: 'normal', done: true, createdAt: Date.now() - 4000 },
+    { id: createConversationId(), title: 'Add tasks I need to remember', dueDate: today, priority: 'high', done: false, createdAt: Date.now() - 3000 },
+    { id: createConversationId(), title: 'Design readPage tool', dueDate: tomorrow, priority: 'normal', done: false, createdAt: Date.now() - 2000 },
+    { id: createConversationId(), title: 'Plan next dashboard module', dueDate: nextWeek, priority: 'low', done: false, createdAt: Date.now() - 1000 }
+  ].map(normalizeTask);
 }
 
 function loadTaskItems() {
   try {
     const saved = JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY));
-    taskItems = Array.isArray(saved) ? saved : seedTasks();
+    taskItems = Array.isArray(saved) ? saved.map(normalizeTask) : seedTasks();
   } catch (_) {
     taskItems = seedTasks();
   }
+  const quickDate = document.getElementById('taskQuickDate');
+  if (quickDate && !quickDate.value) quickDate.value = todayISO();
   saveTaskItems(false);
   renderTaskWorkspace();
 }
 
 function saveTaskItems(render = true) {
+  taskItems = taskItems.map(normalizeTask);
   localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(taskItems));
   if (render) renderTaskWorkspace();
+}
+
+function taskBucket(task) {
+  if (!task?.dueDate) return 'someday';
+  return task.dueDate <= todayISO() ? 'today' : 'upcoming';
 }
 
 function bucketLabel(bucket) {
   return bucket === 'today' ? 'Today' : bucket === 'upcoming' ? 'Upcoming' : 'Someday';
 }
 
+function isOverdue(task) {
+  return !task.done && Boolean(task.dueDate) && task.dueDate < todayISO();
+}
+
+function isDueToday(task) {
+  return Boolean(task.dueDate) && task.dueDate === todayISO();
+}
+
+function isUpcoming(task) {
+  return !task.done && Boolean(task.dueDate) && task.dueDate > todayISO();
+}
+
+function isWithinNextDays(task, days) {
+  if (!isUpcoming(task)) return false;
+  return task.dueDate <= addDaysISO(todayISO(), days);
+}
+
+function sortByDateThenCreated(a, b) {
+  if (!a.dueDate && !b.dueDate) return (b.createdAt || 0) - (a.createdAt || 0);
+  if (!a.dueDate) return 1;
+  if (!b.dueDate) return -1;
+  const diff = a.dueDate.localeCompare(b.dueDate);
+  return diff || (b.createdAt || 0) - (a.createdAt || 0);
+}
+
+function formatTaskDate(iso, compact = false) {
+  if (!iso) return 'No date';
+  const today = todayISO();
+  if (iso === today) return 'Today';
+  if (iso === addDaysISO(today, 1)) return 'Tomorrow';
+  const date = parseLocalDate(iso);
+  if (!date) return iso;
+  return new Intl.DateTimeFormat('en-GB', compact
+    ? { day: 'numeric', month: 'short' }
+    : { weekday: 'short', day: 'numeric', month: 'short' }
+  ).format(date);
+}
+
+function dateTone(task) {
+  if (isOverdue(task)) return 'overdue';
+  if (isDueToday(task)) return 'today';
+  return '';
+}
+
 function renderHomeTasks() {
   const list = document.getElementById('taskList');
   if (!list) return;
-  const today = taskItems.filter((task) => task.bucket === 'today').slice(0, 6);
+  const today = taskItems
+    .filter((task) => !task.done && (isOverdue(task) || isDueToday(task)))
+    .sort(sortByDateThenCreated)
+    .slice(0, 6);
+
   list.innerHTML = today.length ? today.map((task) => `
     <label><input type="checkbox" data-home-task-id="${task.id}" ${task.done ? 'checked' : ''}/><span>${escapeHtml(task.title)}</span></label>
   `).join('') : '<div class="tasks-empty-home">No tasks for today.</div>';
+
   list.querySelectorAll('[data-home-task-id]').forEach((box) => {
     box.addEventListener('change', () => toggleTask(box.dataset.homeTaskId, box.checked));
   });
 
-  const complete = today.filter((task) => task.done).length;
-  const total = today.length;
+  const allToday = taskItems.filter((task) => isDueToday(task));
+  const complete = allToday.filter((task) => task.done).length;
+  const total = allToday.length;
   const percent = total ? Math.round((complete / total) * 100) : 0;
   document.getElementById('taskSummary').textContent = `${complete} of ${total}`;
   document.getElementById('taskPercent').textContent = `${percent}%`;
@@ -248,10 +353,13 @@ function renderTaskWorkspace() {
 
   const open = taskItems.filter((task) => !task.done).length;
   const done = taskItems.filter((task) => task.done).length;
-  const today = taskItems.filter((task) => task.bucket === 'today');
+  const today = taskItems.filter((task) => isDueToday(task));
   const todayDone = today.filter((task) => task.done).length;
+  const nextWeek = taskItems.filter((task) => isWithinNextDays(task, 7)).length;
   const todayPercent = today.length ? Math.round((todayDone / today.length) * 100) : 0;
+
   document.getElementById('tasksTodayCount').textContent = String(today.length);
+  document.getElementById('tasksWeekCount').textContent = String(nextWeek);
   document.getElementById('tasksOpenCount').textContent = String(open);
   document.getElementById('tasksDoneCount').textContent = String(done);
   document.getElementById('tasksFocusPercent').textContent = `${todayPercent}%`;
@@ -262,28 +370,46 @@ function renderTaskWorkspace() {
 
   let filtered = [...taskItems];
   if (taskFilter === 'done') filtered = filtered.filter((task) => task.done);
-  else if (taskFilter !== 'all') filtered = filtered.filter((task) => task.bucket === taskFilter && !task.done);
+  else if (taskFilter === 'today') filtered = filtered.filter((task) => !task.done && (isOverdue(task) || isDueToday(task)));
+  else if (taskFilter === 'upcoming') filtered = filtered.filter((task) => isUpcoming(task));
+  else if (taskFilter === 'someday') filtered = filtered.filter((task) => !task.done && !task.dueDate);
   else filtered = filtered.filter((task) => !task.done);
 
-  const buckets = taskFilter === 'done' ? ['done'] : ['today', 'upcoming', 'someday'];
-  const groups = buckets.map((bucket) => {
-    const items = bucket === 'done' ? filtered : filtered.filter((task) => task.bucket === bucket);
-    if (!items.length) return '';
-    const title = bucket === 'done' ? 'COMPLETED' : bucketLabel(bucket).toUpperCase();
-    return `<section class="task-group"><div class="task-group-head"><h2>${title}</h2><span>${items.length}</span></div>${items.map(renderTaskItem).join('')}</section>`;
-  }).join('');
+  const groups = [];
+  if (taskFilter === 'done') {
+    const items = filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    if (items.length) groups.push(renderTaskGroup('COMPLETED', items));
+  } else {
+    const overdue = filtered.filter(isOverdue).sort(sortByDateThenCreated);
+    const dueToday = filtered.filter((task) => isDueToday(task) && !isOverdue(task)).sort(sortByDateThenCreated);
+    const upcoming = filtered.filter(isUpcoming).sort(sortByDateThenCreated);
+    const someday = filtered.filter((task) => !task.dueDate).sort(sortByDateThenCreated);
+    if (overdue.length) groups.push(renderTaskGroup('OVERDUE', overdue, 'warn'));
+    if (dueToday.length) groups.push(renderTaskGroup('TODAY', dueToday));
+    if (upcoming.length) groups.push(renderTaskGroup('UPCOMING', upcoming));
+    if (someday.length) groups.push(renderTaskGroup('SOMEDAY', someday));
+  }
 
-  sections.innerHTML = groups || '<div class="tasks-empty"><b>Clear mind.</b>No tasks in this view.</div>';
+  sections.innerHTML = groups.join('') || '<div class="tasks-empty"><b>Clear mind.</b>No tasks in this view.</div>';
   bindTaskRows();
-  renderPriorityTasks();
+  renderUpcomingTasks();
+}
+
+function renderTaskGroup(title, items, tone = '') {
+  return `<section class="task-group ${tone}"><div class="task-group-head"><h2>${title}</h2><span>${items.length}</span></div>${items.map(renderTaskItem).join('')}</section>`;
 }
 
 function renderTaskItem(task) {
-  return `<div class="task-item ${task.done ? 'completed' : ''}" data-task-id="${task.id}">
+  const tone = dateTone(task);
+  const due = task.dueDate ? formatTaskDate(task.dueDate) : 'No date';
+  return `<div class="task-item ${task.done ? 'completed' : ''} ${tone}" data-task-id="${task.id}">
     <input class="task-check" type="checkbox" ${task.done ? 'checked' : ''} aria-label="Complete task" />
-    <div class="task-copy"><span class="task-title">${escapeHtml(task.title)}</span><div class="task-meta"><span>${bucketLabel(task.bucket)}</span></div></div>
+    <div class="task-copy">
+      <span class="task-title">${escapeHtml(task.title)}</span>
+      <div class="task-meta"><span class="task-date ${tone}">${escapeHtml(due)}</span>${!task.dueDate ? '<span>Someday</span>' : ''}</div>
+    </div>
     <span class="task-priority ${task.priority}">${task.priority}</span>
-    <button class="task-move" type="button" title="Move task">↻</button>
+    <button class="task-edit" type="button" title="Edit task">•••</button>
     <button class="task-delete" type="button" title="Delete task">×</button>
   </div>`;
 }
@@ -293,8 +419,8 @@ function bindTaskRows() {
     const id = row.dataset.taskId;
     row.querySelector('.task-check')?.addEventListener('change', (event) => toggleTask(id, event.target.checked));
     row.querySelector('.task-delete')?.addEventListener('click', () => deleteTask(id));
-    row.querySelector('.task-move')?.addEventListener('click', () => cycleTaskBucket(id));
-    row.querySelector('.task-title')?.addEventListener('dblclick', () => editTask(id));
+    row.querySelector('.task-edit')?.addEventListener('click', () => openTaskEditor(id));
+    row.querySelector('.task-title')?.addEventListener('dblclick', () => openTaskEditor(id));
   });
 }
 
@@ -302,15 +428,18 @@ function addTaskFromComposer() {
   const input = document.getElementById('taskQuickInput');
   const title = input?.value.trim();
   if (!title) { input?.focus(); return; }
-  taskItems.unshift({
-    id: createConversationId(), title,
-    bucket: document.getElementById('taskQuickBucket').value,
+  const dueDate = document.getElementById('taskQuickDate')?.value || null;
+  taskItems.unshift(normalizeTask({
+    id: createConversationId(),
+    title,
+    dueDate,
     priority: document.getElementById('taskQuickPriority').value,
-    done: false, createdAt: Date.now()
-  });
+    done: false,
+    createdAt: Date.now()
+  }));
   input.value = '';
   saveTaskItems();
-  showToast('Task added');
+  showToast(dueDate ? `Task added · ${formatTaskDate(dueDate)}` : 'Task added · no date');
   input.focus();
 }
 
@@ -318,6 +447,7 @@ function toggleTask(id, done) {
   const task = taskItems.find((item) => item.id === id);
   if (!task) return;
   task.done = Boolean(done);
+  task.completedAt = task.done ? Date.now() : null;
   saveTaskItems();
 }
 
@@ -327,31 +457,65 @@ function deleteTask(id) {
   showToast('Task removed');
 }
 
-function cycleTaskBucket(id) {
+function openTaskEditor(id) {
   const task = taskItems.find((item) => item.id === id);
-  if (!task) return;
-  const order = ['today', 'upcoming', 'someday'];
-  task.bucket = order[(order.indexOf(task.bucket) + 1) % order.length];
-  saveTaskItems();
-  showToast(`Moved to ${bucketLabel(task.bucket)}`);
+  const dialog = document.getElementById('taskEditDialog');
+  if (!task || !dialog) return;
+  editingTaskId = id;
+  document.getElementById('taskEditTitle').value = task.title;
+  document.getElementById('taskEditDate').value = task.dueDate || '';
+  document.getElementById('taskEditPriority').value = task.priority || 'normal';
+  dialog.showModal();
+  setTimeout(() => document.getElementById('taskEditTitle')?.focus(), 50);
 }
 
-function editTask(id) {
-  const task = taskItems.find((item) => item.id === id);
-  if (!task) return;
-  const next = prompt('Edit task', task.title);
-  if (next === null) return;
-  const clean = next.trim();
-  if (!clean) return;
-  task.title = clean;
-  saveTaskItems();
+function closeTaskEditor() {
+  const dialog = document.getElementById('taskEditDialog');
+  if (dialog?.open) dialog.close();
+  editingTaskId = null;
 }
 
-function renderPriorityTasks() {
-  const target = document.getElementById('tasksPriorityList');
+function saveTaskEditor() {
+  const task = taskItems.find((item) => item.id === editingTaskId);
+  if (!task) return closeTaskEditor();
+  const title = document.getElementById('taskEditTitle')?.value.trim();
+  if (!title) return document.getElementById('taskEditTitle')?.focus();
+  task.title = title;
+  task.dueDate = document.getElementById('taskEditDate')?.value || null;
+  task.priority = document.getElementById('taskEditPriority')?.value || 'normal';
+  task.bucket = taskBucket(task);
+  closeTaskEditor();
+  saveTaskItems();
+  showToast('Task updated');
+}
+
+function deleteTaskFromEditor() {
+  if (!editingTaskId) return;
+  const id = editingTaskId;
+  closeTaskEditor();
+  deleteTask(id);
+}
+
+function renderUpcomingTasks() {
+  const target = document.getElementById('tasksUpcomingList');
   if (!target) return;
-  const high = taskItems.filter((task) => !task.done && task.priority === 'high').slice(0, 5);
-  target.innerHTML = high.length ? high.map((task) => `<div class="tasks-priority-row"><i></i><span>${escapeHtml(task.title)}</span><small>${bucketLabel(task.bucket)}</small></div>`).join('') : '<div class="tasks-priority-empty">No high-priority tasks. Nice.</div>';
+  const upcoming = taskItems
+    .filter((task) => !task.done && task.dueDate)
+    .sort(sortByDateThenCreated)
+    .slice(0, 5);
+
+  target.innerHTML = upcoming.length ? upcoming.map((task) => {
+    const tone = dateTone(task);
+    return `<button class="tasks-upcoming-row ${tone}" type="button" data-upcoming-task-id="${task.id}">
+      <span class="tasks-upcoming-date">${escapeHtml(formatTaskDate(task.dueDate, true))}</span>
+      <span class="tasks-upcoming-copy"><b>${escapeHtml(task.title)}</b><small>${task.priority} priority</small></span>
+      <span>›</span>
+    </button>`;
+  }).join('') : '<div class="tasks-priority-empty">Nothing dated yet. Your week is open.</div>';
+
+  target.querySelectorAll('[data-upcoming-task-id]').forEach((button) => {
+    button.addEventListener('click', () => openTaskEditor(button.dataset.upcomingTaskId));
+  });
 }
 
 function clearCompletedTasks() {
@@ -720,10 +884,20 @@ document.querySelectorAll('[data-task-filter]').forEach((button) => {
   });
 });
 document.getElementById('clearCompletedTasks')?.addEventListener('click', clearCompletedTasks);
+document.getElementById('taskEditSave')?.addEventListener('click', saveTaskEditor);
+document.getElementById('taskEditDelete')?.addEventListener('click', deleteTaskFromEditor);
+document.getElementById('taskEditDialog')?.addEventListener('close', () => { editingTaskId = null; });
+document.getElementById('taskEditTitle')?.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') { event.preventDefault(); saveTaskEditor(); }
+});
 document.getElementById('tasksAskAi')?.addEventListener('click', () => {
-  const openTasks = taskItems.filter((task) => !task.done).map((task) => `- ${task.title} (${bucketLabel(task.bucket)}, ${task.priority})`).join('\n');
+  const openTasks = taskItems
+    .filter((task) => !task.done)
+    .sort(sortByDateThenCreated)
+    .map((task) => `- ${task.title} (${task.dueDate ? formatTaskDate(task.dueDate) : 'no date'}, ${task.priority} priority)`)
+    .join('\n');
   openView('AI');
-  aiPagePrompt.value = `Help me plan and prioritize these tasks:\n${openTasks || '- No open tasks yet'}`;
+  aiPagePrompt.value = `Help me plan and prioritize these tasks. Consider the due dates and flag anything overloaded or unrealistic:\n${openTasks || '- No open tasks yet'}`;
   autosizeAiTextarea();
   setTimeout(() => aiPagePrompt.focus(), 80);
 });

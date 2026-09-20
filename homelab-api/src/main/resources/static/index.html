@@ -29,7 +29,7 @@
       <div class="sidebar-footer">
         <div class="mantra-line"></div>
         <p>A CLEARER<br>MIND.<br>A RICHER<br>LIFE.</p>
-        <small>v0.14.0</small>
+        <small>v0.15.0</small>
       </div>
     </aside>
 
@@ -510,12 +510,13 @@
         <div class="tasks-page-shell">
           <header class="tasks-page-header">
             <div>
-              <div class="tasks-eyebrow"><span class="status-dot live"></span> HOME TASKS · INTENTIONS INTO ACTION</div>
+              <div class="tasks-eyebrow"><span class="status-dot live"></span> HOME TASKS · CLEAR MIND, CLEAR NEXT STEP</div>
               <h1>Tasks</h1>
-              <p>Capture what matters, decide what is next, and keep the rest out of your head.</p>
+              <p>Capture it, give it a date when it matters, and let HOME keep the rest organized.</p>
             </div>
             <div class="tasks-header-stats">
               <div><span>TODAY</span><strong id="tasksTodayCount">0</strong></div>
+              <div><span>NEXT 7 DAYS</span><strong id="tasksWeekCount">0</strong></div>
               <div><span>OPEN</span><strong id="tasksOpenCount">0</strong></div>
               <div><span>DONE</span><strong id="tasksDoneCount">0</strong></div>
             </div>
@@ -525,12 +526,11 @@
             <section class="tasks-main tasks-surface">
               <div class="tasks-capture">
                 <div class="tasks-capture-icon">＋</div>
-                <input id="taskQuickInput" type="text" placeholder="Add a task…" autocomplete="off" />
-                <select id="taskQuickBucket" aria-label="Task bucket">
-                  <option value="today">Today</option>
-                  <option value="upcoming">Upcoming</option>
-                  <option value="someday">Someday</option>
-                </select>
+                <input id="taskQuickInput" type="text" placeholder="What needs to happen?" autocomplete="off" />
+                <label class="task-date-field" title="Due date">
+                  <span>DATE</span>
+                  <input id="taskQuickDate" type="date" aria-label="Task due date" />
+                </label>
                 <select id="taskQuickPriority" aria-label="Task priority">
                   <option value="normal">Normal</option>
                   <option value="high">High</option>
@@ -547,7 +547,10 @@
                   <button type="button" data-task-filter="someday">Someday</button>
                   <button type="button" data-task-filter="done">Done</button>
                 </div>
-                <button id="clearCompletedTasks" class="tasks-clear" type="button">Clear completed</button>
+                <div class="tasks-toolbar-right">
+                  <span id="tasksDateHint">Dates stay local for now</span>
+                  <button id="clearCompletedTasks" class="tasks-clear" type="button">Clear completed</button>
+                </div>
               </div>
 
               <div class="tasks-sections" id="tasksSections"></div>
@@ -560,21 +563,45 @@
                 <p id="tasksFocusCopy">Nothing scheduled yet. Add what matters today.</p>
               </section>
 
-              <section class="tasks-surface tasks-priority-card">
-                <div class="tasks-card-head"><span>PRIORITY</span><small>02</small></div>
-                <div id="tasksPriorityList" class="tasks-priority-list"></div>
+              <section class="tasks-surface tasks-upcoming-card">
+                <div class="tasks-card-head"><span>NEXT UP</span><small>02</small></div>
+                <div id="tasksUpcomingList" class="tasks-upcoming-list"></div>
               </section>
 
               <section class="tasks-surface tasks-hint-card">
                 <div class="tasks-card-head"><span>HOME AI</span><small>03</small></div>
                 <h3>Turn thoughts into actions.</h3>
-                <p>Later HOME AI will be able to create, reschedule and complete tasks for you. For now this list stays local in your browser.</p>
+                <p>HOME AI will later create, reschedule and complete tasks through the backend. For now the planner can already use your current task list.</p>
                 <button id="tasksAskAi" type="button">Plan my tasks with HOME →</button>
               </section>
             </aside>
           </div>
         </div>
       </section>
+
+      <dialog id="taskEditDialog" class="task-edit-dialog">
+        <form method="dialog" id="taskEditForm">
+          <div class="task-edit-head">
+            <div>
+              <span>EDIT TASK</span>
+              <h3>Task details</h3>
+            </div>
+            <button value="cancel" class="task-dialog-close" aria-label="Close">×</button>
+          </div>
+          <input id="taskEditTitle" class="task-edit-title" type="text" autocomplete="off" />
+          <div class="task-edit-grid">
+            <label><span>DUE DATE</span><input id="taskEditDate" type="date" /></label>
+            <label><span>PRIORITY</span><select id="taskEditPriority"><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option></select></label>
+          </div>
+          <div class="task-edit-actions">
+            <button type="button" id="taskEditDelete" class="danger">Delete</button>
+            <div>
+              <button value="cancel" class="secondary">Cancel</button>
+              <button type="button" id="taskEditSave" class="primary">Save changes</button>
+            </div>
+          </div>
+        </form>
+      </dialog>
 
       <section class="app-view journey-page-view" id="view-journey" aria-label="Life journey workspace">
         <div class="journey-page-atmosphere" aria-hidden="true">
