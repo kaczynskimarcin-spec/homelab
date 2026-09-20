@@ -15,15 +15,18 @@ public class AiController {
     private final OllamaService ollamaService;
     private final ChatMessageRepository chatMessageRepository;
     private final WebSearchService webSearchService;
+    private final MemoryService memoryService;
 
     public AiController(
             OllamaService ollamaService,
             ChatMessageRepository chatMessageRepository,
-            WebSearchService webSearchService
+            WebSearchService webSearchService,
+            MemoryService memoryService
     ) {
         this.ollamaService = ollamaService;
         this.chatMessageRepository = chatMessageRepository;
         this.webSearchService = webSearchService;
+        this.memoryService = memoryService;
     }
 
     @PostMapping("/chat")
@@ -72,24 +75,14 @@ public class AiController {
             }
         }
 
-        /*
-         * Pobieramy historię tylko aktualnej rozmowy.
-         */
         List<ChatMessage> history =
                 chatMessageRepository
                         .findTop20ByConversationIdOrderByIdDesc(
                                 conversationId
                         );
 
-        /*
-         * Repository zwraca newest -> oldest.
-         * Model potrzebuje oldest -> newest.
-         */
         Collections.reverse(history);
 
-        /*
-         * Do bazy zapisujemy oryginalną wiadomość użytkownika.
-         */
         ChatMessage userMessage =
                 new ChatMessage(
                         "user",
@@ -104,12 +97,6 @@ public class AiController {
                 userMessage
         );
 
-        /*
-         * Wiadomość przekazywana do modelu.
-         *
-         * Domyślnie jest taka sama jak wiadomość użytkownika.
-         * Przy prefixie web: dokładamy wyniki wyszukiwania.
-         */
         String messageForModel = originalMessage;
 
         if (useWeb) {
@@ -138,15 +125,28 @@ public class AiController {
             );
         }
 
+        String longTermMemory =
+                memoryService.buildMemoryContext();
+
+        messageForModel = """
+                %s
+
+                PAMIĘĆ DŁUGOTERMINOWA HOME AI:
+                %s
+
+                Korzystaj z pamięci tylko wtedy, gdy jest istotna dla pytania.
+                Nie twierdź, że pamiętasz coś, czego nie ma w przekazanym kontekście.
+                """.formatted(
+                messageForModel,
+                longTermMemory
+        );
+
         String response =
                 ollamaService.chat(
                         messageForModel,
                         history
                 );
 
-        /*
-         * Zapis odpowiedzi AI.
-         */
         ChatMessage assistantMessage =
                 new ChatMessage(
                         "assistant",
