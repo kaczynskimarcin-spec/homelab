@@ -1,5 +1,7 @@
 package com.mindflow.homelabapi;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -64,6 +66,11 @@ public class MemoryController {
                 savedMemory.getContent(),
                 savedMemory.getImportance()
         );
+    }
+
+    @GetMapping
+    public List<MemoryItem> getMemories() {
+        return memoryItemRepository.findAll();
     }
 
     public record MemoryRequest(
