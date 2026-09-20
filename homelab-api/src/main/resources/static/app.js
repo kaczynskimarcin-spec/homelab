@@ -153,10 +153,16 @@ async function loadMemory() {
       if (focusCopy) focusCopy.textContent = latest.content;
       const latestMemory = document.getElementById('aiInspectorLatestMemory');
       if (latestMemory) latestMemory.textContent = latest.content;
+      const journeyLatestMemory = document.getElementById('journeyLatestMemory');
+      if (journeyLatestMemory) journeyLatestMemory.textContent = latest.content;
     } else {
       const latestMemory = document.getElementById('aiInspectorLatestMemory');
       if (latestMemory) latestMemory.textContent = 'No long-term memories stored yet.';
+      const journeyLatestMemory = document.getElementById('journeyLatestMemory');
+      if (journeyLatestMemory) journeyLatestMemory.textContent = 'No long-term memories stored yet.';
     }
+    const journeyMemoryCount = document.getElementById('journeyMemoryCount');
+    if (journeyMemoryCount) journeyMemoryCount.textContent = `${count} ${count === 1 ? 'thread' : 'threads'}`;
     addEvent(`Memory API verified · ${count} stored`, 'success');
   } catch (error) {
     setService('api', false, 'Offline');
@@ -353,7 +359,7 @@ document.querySelectorAll('[data-system-action]').forEach((button) => {
 
 function openView(viewName) {
   const normalized = String(viewName || '').toLowerCase();
-  const available = normalized === 'home' || normalized === 'ai' || normalized === 'system';
+  const available = normalized === 'home' || normalized === 'ai' || normalized === 'system' || normalized === 'journey';
   if (!available) {
     showToast(`${viewName} · next module to design`);
     return;
@@ -444,6 +450,35 @@ document.querySelectorAll('[data-service-action]').forEach((button) => {
   });
 });
 
+
+document.querySelectorAll('.journey-reflect').forEach((button) => {
+  button.addEventListener('click', () => {
+    const prompt = button.dataset.journeyPrompt || 'Help me reflect on this moment.';
+    openView('AI');
+    aiPagePrompt.value = prompt;
+    autosizeAiTextarea();
+    setTimeout(() => aiPagePrompt.focus(), 90);
+  });
+});
+
+document.querySelectorAll('[data-journey-chapter]').forEach((button) => {
+  button.addEventListener('click', () => {
+    showToast(`${button.dataset.journeyChapter} chapter · timeline filtering comes next`);
+  });
+});
+
+document.querySelectorAll('.journey-filters button').forEach((button) => {
+  button.addEventListener('click', () => {
+    document.querySelectorAll('.journey-filters button').forEach((item) => item.classList.remove('active'));
+    button.classList.add('active');
+    showToast(`${button.textContent.trim()} journey filter selected`);
+  });
+});
+
+document.getElementById('journeyAddMoment')?.addEventListener('click', () => {
+  showToast('Add Moment composer · next Journey iteration');
+});
+
 document.addEventListener('keydown', (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
@@ -464,5 +499,5 @@ loadMemory();
 updateAiPageWebState(false);
 
 const hashView = location.hash.toLowerCase();
-const initialView = hashView === '#ai' ? 'AI' : hashView === '#system' ? 'System' : 'Home';
+const initialView = hashView === '#ai' ? 'AI' : hashView === '#system' ? 'System' : hashView === '#journey' ? 'Journey' : 'Home';
 openView(initialView);

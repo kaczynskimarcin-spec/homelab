@@ -30,7 +30,7 @@
       <div class="sidebar-footer">
         <div class="mantra-line"></div>
         <p>A CLEARER<br>MIND.<br>A RICHER<br>LIFE.</p>
-        <small>v0.11.0</small>
+        <small>v0.12.0</small>
       </div>
     </aside>
 
@@ -510,6 +510,128 @@
         </div>
       </section>
 
+
+      <section class="app-view journey-page-view" id="view-journey" aria-label="Life journey workspace">
+        <div class="journey-page-atmosphere" aria-hidden="true">
+          <img src="assets/hero-mountains.webp" alt="" />
+          <div></div>
+        </div>
+
+        <div class="journey-page-shell">
+          <header class="journey-page-header">
+            <div>
+              <div class="journey-eyebrow"><span class="status-dot live"></span> HOME JOURNEY · LIFE IN CONTEXT</div>
+              <h1>Your life, remembered.</h1>
+              <p>Moments, projects, places and milestones — woven into one living timeline.</p>
+            </div>
+            <div class="journey-header-meta">
+              <div><span>YEAR</span><strong>2026</strong></div>
+              <div><span>MEMORY</span><strong id="journeyMemoryCount">— threads</strong></div>
+              <div><span>MODE</span><strong>Private</strong></div>
+            </div>
+          </header>
+
+          <div class="journey-layout">
+            <section class="journey-timeline-panel journey-surface">
+              <div class="journey-panel-head">
+                <div>
+                  <span class="journey-kicker">TIMELINE</span>
+                  <h2>Recent chapters</h2>
+                </div>
+                <div class="journey-filters" role="group" aria-label="Journey filters">
+                  <button class="active" type="button">All</button>
+                  <button type="button">Milestones</button>
+                  <button type="button">Places</button>
+                  <button type="button">Projects</button>
+                </div>
+              </div>
+
+              <div class="journey-timeline">
+                <article class="journey-event featured">
+                  <div class="journey-date"><strong>20</strong><span>SEP</span><small>2026</small></div>
+                  <div class="journey-event-line"><i></i></div>
+                  <div class="journey-event-card">
+                    <div class="journey-event-image memory-image">
+                      <img src="assets/project-lake.webp" alt="" aria-hidden="true" />
+                      <span class="journey-event-type">MILESTONE</span>
+                    </div>
+                    <div class="journey-event-copy">
+                      <span class="journey-event-meta">HOME AI · TODAY</span>
+                      <h3>HOME learned to remember.</h3>
+                      <p>Long-term memory became part of the real AI context — a new conversation could recall the goal stored in PostgreSQL.</p>
+                      <div class="journey-event-tags"><span>AI</span><span>Memory</span><span>HomeLab</span></div>
+                      <button type="button" class="journey-reflect" data-journey-prompt="Reflect on the milestone where HOME AI gained long-term memory. What changed in the project and what should come next?">Reflect with HOME →</button>
+                    </div>
+                  </div>
+                </article>
+
+                <article class="journey-event">
+                  <div class="journey-date"><strong>20</strong><span>SEP</span><small>2026</small></div>
+                  <div class="journey-event-line"><i></i></div>
+                  <div class="journey-event-card compact">
+                    <div class="journey-mini-glyph cyan">⌘</div>
+                    <div class="journey-event-copy">
+                      <span class="journey-event-meta">SYSTEM · TODAY</span>
+                      <h3>The infrastructure became visible.</h3>
+                      <p>The System workspace turned the HomeLab into a navigable architecture map instead of a list of services.</p>
+                      <div class="journey-event-tags"><span>System</span><span>Infrastructure</span></div>
+                    </div>
+                  </div>
+                </article>
+
+                <article class="journey-event">
+                  <div class="journey-date soft"><strong>19</strong><span>SEP</span><small>2026</small></div>
+                  <div class="journey-event-line"><i></i></div>
+                  <div class="journey-event-card compact">
+                    <div class="journey-mini-glyph amber">⌕</div>
+                    <div class="journey-event-copy">
+                      <span class="journey-event-meta">RESEARCH · RECENT</span>
+                      <h3>HOME opened a window to the web.</h3>
+                      <p>SearXNG became the local search layer, letting HOME reach current information without replacing the local-first architecture.</p>
+                      <div class="journey-event-tags"><span>Web</span><span>Search</span><span>Privacy</span></div>
+                    </div>
+                  </div>
+                </article>
+
+                <button class="journey-add-moment" type="button" id="journeyAddMoment">
+                  <span>＋</span>
+                  <div><b>Add a moment</b><small>Manual memory, photo, place or milestone</small></div>
+                </button>
+              </div>
+            </section>
+
+            <aside class="journey-side">
+              <section class="journey-surface on-this-day">
+                <div class="journey-card-head"><span>ON THIS DAY</span><small>01</small></div>
+                <div class="on-this-day-photo"><img src="assets/focus-mountain.webp" alt="" aria-hidden="true" /></div>
+                <div class="on-this-day-copy">
+                  <span>One day, many threads.</span>
+                  <h3>What mattered most?</h3>
+                  <p id="journeyLatestMemory">Loading the latest long-term memory…</p>
+                  <button type="button" class="journey-reflect full" data-journey-prompt="Look at my current long-term memory and help me reflect on what matters most right now.">Ask HOME to reflect</button>
+                </div>
+              </section>
+
+              <section class="journey-surface chapters-card">
+                <div class="journey-card-head"><span>CHAPTERS</span><small>02</small></div>
+                <div class="journey-chapters">
+                  <button type="button" data-journey-chapter="HOME"><span>⌂</span><div><b>HOME</b><small>AI · System · Building</small></div><em>→</em></button>
+                  <button type="button" data-journey-chapter="Travel"><span>⌗</span><div><b>Travel</b><small>Places · Trips · Moments</small></div><em>→</em></button>
+                  <button type="button" data-journey-chapter="Photography"><span>▧</span><div><b>Photography</b><small>Sessions · Frames · Stories</small></div><em>→</em></button>
+                  <button type="button" data-journey-chapter="Learning"><span>◌</span><div><b>Learning</b><small>Java · HomeLab · Growth</small></div><em>→</em></button>
+                </div>
+              </section>
+
+              <section class="journey-surface reflection-card">
+                <div class="journey-card-head"><span>AI REFLECTION</span><small>03</small></div>
+                <div class="reflection-orb">HOME</div>
+                <blockquote>“You are moving from building separate tools to building one environment that can remember, connect and reflect.”</blockquote>
+                <button type="button" class="journey-reflect full" data-journey-prompt="Give me a short reflection on the progress I have made building HOME recently. Use my memory and recent conversation context.">Generate fresh reflection</button>
+              </section>
+            </aside>
+          </div>
+        </div>
+      </section>
     </section>
 
     <div class="search-results" id="searchResults" aria-live="polite">
