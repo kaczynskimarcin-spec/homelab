@@ -188,9 +188,11 @@ async function loadMemory() {
 }
 
 const TASKS_STORAGE_KEY = 'homeTaskItemsV2';
+const TASKS_OFFLINE_STORAGE_KEY = 'homeTaskItemsOfflineV1';
 let taskFilter = 'all';
 let taskItems = [];
 let editingTaskId = null;
+let tasksBackendAvailable = false;
 
 function localDateISO(date = new Date()) {
   const year = date.getFullYear();
@@ -229,43 +231,74 @@ function normalizeTask(task) {
         ? tomorrowISO()
         : null;
   }
+
+  normalized.done = Object.prototype.hasOwnProperty.call(normalized, 'completed')
+    ? Boolean(normalized.completed)
+    : Boolean(normalized.done);
+  normalized.completed = normalized.done;
+  normalized.priority = String(normalized.priority || 'NORMAL').toLowerCase();
+  if (!['low', 'normal', 'high'].includes(normalized.priority)) normalized.priority = 'normal';
   normalized.bucket = taskBucket(normalized);
-  normalized.priority = ['low', 'normal', 'high'].includes(normalized.priority) ? normalized.priority : 'normal';
-  normalized.done = Boolean(normalized.done);
+
+  if (typeof normalized.createdAt === 'string') {
+    normalized.createdAt = Date.parse(normalized.createdAt) || 0;
+  }
+  normalized.createdAt = Number(normalized.createdAt || 0);
   return normalized;
 }
 
-function seedTasks() {
-  const today = todayISO();
-  const tomorrow = addDaysISO(today, 1);
-  const nextWeek = addDaysISO(today, 5);
-  return [
-    { id: createConversationId(), title: 'Review Home AI memory', dueDate: today, priority: 'normal', done: true, createdAt: Date.now() - 6000 },
-    { id: createConversationId(), title: 'Study Java — Spring Boot', dueDate: today, priority: 'normal', done: true, createdAt: Date.now() - 5000 },
-    { id: createConversationId(), title: 'Check HomeLab services', dueDate: today, priority: 'normal', done: true, createdAt: Date.now() - 4000 },
-    { id: createConversationId(), title: 'Add tasks I need to remember', dueDate: today, priority: 'high', done: false, createdAt: Date.now() - 3000 },
-    { id: createConversationId(), title: 'Design readPage tool', dueDate: tomorrow, priority: 'normal', done: false, createdAt: Date.now() - 2000 },
-    { id: createConversationId(), title: 'Plan next dashboard module', dueDate: nextWeek, priority: 'low', done: false, createdAt: Date.now() - 1000 }
-  ].map(normalizeTask);
+function taskToApiPayload(task) {
+  return {
+    title: task.title,
+    completed: Boolean(task.done),
+    dueDate: task.dueDate || null,
+    priority: String(task.priority || 'normal').toUpperCase()
+  };
 }
 
-function loadTaskItems() {
+function setTaskSyncState(mode) {
+  const hint = document.getElementById('tasksDateHint');
+  if (!hint) return;
+  if (mode === 'loading') hint.textContent = 'Syncing with PostgreSQL…';
+  else if (mode === 'live') hint.textContent = 'PostgreSQL synced · available on every device';
+  else hint.textContent = 'Backend offline · local fallback';
+}
+
+function readOfflineTasks() {
   try {
-    const saved = JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY));
-    taskItems = Array.isArray(saved) ? saved.map(normalizeTask) : seedTasks();
-  } catch (_) {
-    taskItems = seedTasks();
-  }
+    const current = JSON.parse(localStorage.getItem(TASKS_OFFLINE_STORAGE_KEY));
+    if (Array.isArray(current)) return current.map(normalizeTask);
+    const legacy = JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY));
+    if (Array.isArray(legacy)) return legacy.map(normalizeTask);
+  } catch (_) {}
+  return [];
+}
+
+function saveOfflineSnapshot() {
+  localStorage.setItem(TASKS_OFFLINE_STORAGE_KEY, JSON.stringify(taskItems));
+}
+
+async function loadTaskItems() {
   const quickDate = document.getElementById('taskQuickDate');
   if (quickDate && !quickDate.value) quickDate.value = todayISO();
-  saveTaskItems(false);
-  renderTaskWorkspace();
-}
+  setTaskSyncState('loading');
 
-function saveTaskItems(render = true) {
-  taskItems = taskItems.map(normalizeTask);
-  localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(taskItems));
-  if (render) renderTaskWorkspace();
+  try {
+    const response = await fetch('/api/tasks', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Tasks API ${response.status}`);
+    const data = await response.json();
+    taskItems = Array.isArray(data) ? data.map(normalizeTask) : [];
+    tasksBackendAvailable = true;
+    saveOfflineSnapshot();
+    setTaskSyncState('live');
+  } catch (error) {
+    console.error('Tasks backend unavailable:', error);
+    tasksBackendAvailable = false;
+    taskItems = readOfflineTasks();
+    setTaskSyncState('offline');
+  }
+
+  renderTaskWorkspace();
 }
 
 function taskBucket(task) {
@@ -414,6 +447,10 @@ function renderTaskItem(task) {
   </div>`;
 }
 
+function findTaskById(id) {
+  return taskItems.find((item) => String(item.id) === String(id));
+}
+
 function bindTaskRows() {
   document.querySelectorAll('.task-item').forEach((row) => {
     const id = row.dataset.taskId;
@@ -424,44 +461,115 @@ function bindTaskRows() {
   });
 }
 
-function addTaskFromComposer() {
+async function addTaskFromComposer() {
   const input = document.getElementById('taskQuickInput');
   const title = input?.value.trim();
   if (!title) { input?.focus(); return; }
   const dueDate = document.getElementById('taskQuickDate')?.value || null;
-  taskItems.unshift(normalizeTask({
-    id: createConversationId(),
-    title,
-    dueDate,
-    priority: document.getElementById('taskQuickPriority').value,
-    done: false,
-    createdAt: Date.now()
-  }));
-  input.value = '';
-  saveTaskItems();
-  showToast(dueDate ? `Task added · ${formatTaskDate(dueDate)}` : 'Task added · no date');
-  input.focus();
+  const priority = document.getElementById('taskQuickPriority')?.value || 'normal';
+  const draft = normalizeTask({ title, dueDate, priority, done: false, createdAt: Date.now() });
+  const addButton = document.getElementById('taskAddButton');
+
+  if (!tasksBackendAvailable) {
+    draft.id = createConversationId();
+    taskItems.unshift(draft);
+    saveOfflineSnapshot();
+    renderTaskWorkspace();
+    input.value = '';
+    showToast('Task saved locally · backend offline');
+    input.focus();
+    return;
+  }
+
+  if (addButton) addButton.disabled = true;
+  try {
+    const response = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(taskToApiPayload(draft))
+    });
+    if (!response.ok) throw new Error(`Tasks API ${response.status}`);
+    const saved = normalizeTask(await response.json());
+    taskItems.unshift(saved);
+    saveOfflineSnapshot();
+    renderTaskWorkspace();
+    input.value = '';
+    showToast(dueDate ? `Task saved to PostgreSQL · ${formatTaskDate(dueDate)}` : 'Task saved to PostgreSQL · no date');
+    input.focus();
+  } catch (error) {
+    console.error(error);
+    showToast('Could not save task · check HomeLab API');
+  } finally {
+    if (addButton) addButton.disabled = false;
+  }
 }
 
-function toggleTask(id, done) {
-  const task = taskItems.find((item) => item.id === id);
+async function persistTask(task) {
+  if (!tasksBackendAvailable) {
+    saveOfflineSnapshot();
+    return normalizeTask(task);
+  }
+  const response = await fetch(`/api/tasks/${encodeURIComponent(task.id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(taskToApiPayload(task))
+  });
+  if (!response.ok) throw new Error(`Tasks API ${response.status}`);
+  return normalizeTask(await response.json());
+}
+
+async function toggleTask(id, done) {
+  const task = findTaskById(id);
   if (!task) return;
+  const previous = task.done;
   task.done = Boolean(done);
-  task.completedAt = task.done ? Date.now() : null;
-  saveTaskItems();
+  task.completed = task.done;
+  renderTaskWorkspace();
+
+  try {
+    const saved = await persistTask(task);
+    Object.assign(task, saved);
+    saveOfflineSnapshot();
+    renderTaskWorkspace();
+  } catch (error) {
+    console.error(error);
+    task.done = previous;
+    task.completed = previous;
+    renderTaskWorkspace();
+    showToast('Could not update task');
+  }
 }
 
-function deleteTask(id) {
-  taskItems = taskItems.filter((item) => item.id !== id);
-  saveTaskItems();
-  showToast('Task removed');
+async function deleteTask(id) {
+  const index = taskItems.findIndex((item) => String(item.id) === String(id));
+  if (index < 0) return;
+  const [removed] = taskItems.splice(index, 1);
+  renderTaskWorkspace();
+
+  if (!tasksBackendAvailable) {
+    saveOfflineSnapshot();
+    showToast('Task removed locally');
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (!response.ok) throw new Error(`Tasks API ${response.status}`);
+    saveOfflineSnapshot();
+    showToast('Task removed');
+  } catch (error) {
+    console.error(error);
+    taskItems.splice(index, 0, removed);
+    renderTaskWorkspace();
+    showToast('Could not remove task');
+  }
 }
 
 function openTaskEditor(id) {
-  const task = taskItems.find((item) => item.id === id);
+  const task = findTaskById(id);
   const dialog = document.getElementById('taskEditDialog');
   if (!task || !dialog) return;
-  editingTaskId = id;
+  editingTaskId = String(id);
   document.getElementById('taskEditTitle').value = task.title;
   document.getElementById('taskEditDate').value = task.dueDate || '';
   document.getElementById('taskEditPriority').value = task.priority || 'normal';
@@ -475,18 +583,31 @@ function closeTaskEditor() {
   editingTaskId = null;
 }
 
-function saveTaskEditor() {
-  const task = taskItems.find((item) => item.id === editingTaskId);
+async function saveTaskEditor() {
+  const task = findTaskById(editingTaskId);
   if (!task) return closeTaskEditor();
   const title = document.getElementById('taskEditTitle')?.value.trim();
   if (!title) return document.getElementById('taskEditTitle')?.focus();
+
+  const previous = { ...task };
   task.title = title;
   task.dueDate = document.getElementById('taskEditDate')?.value || null;
   task.priority = document.getElementById('taskEditPriority')?.value || 'normal';
   task.bucket = taskBucket(task);
-  closeTaskEditor();
-  saveTaskItems();
-  showToast('Task updated');
+
+  try {
+    const saved = await persistTask(task);
+    Object.assign(task, saved);
+    closeTaskEditor();
+    saveOfflineSnapshot();
+    renderTaskWorkspace();
+    showToast(tasksBackendAvailable ? 'Task synced with PostgreSQL' : 'Task updated locally');
+  } catch (error) {
+    console.error(error);
+    Object.assign(task, previous);
+    renderTaskWorkspace();
+    showToast('Could not update task');
+  }
 }
 
 function deleteTaskFromEditor() {
@@ -518,11 +639,29 @@ function renderUpcomingTasks() {
   });
 }
 
-function clearCompletedTasks() {
-  const before = taskItems.length;
-  taskItems = taskItems.filter((task) => !task.done);
-  saveTaskItems();
-  showToast(`${before - taskItems.length} completed tasks cleared`);
+async function clearCompletedTasks() {
+  const completed = taskItems.filter((task) => task.done);
+  if (!completed.length) return showToast('No completed tasks to clear');
+
+  if (!tasksBackendAvailable) {
+    taskItems = taskItems.filter((task) => !task.done);
+    saveOfflineSnapshot();
+    renderTaskWorkspace();
+    return showToast(`${completed.length} completed tasks cleared locally`);
+  }
+
+  try {
+    await Promise.all(completed.map(async (task) => {
+      const response = await fetch(`/api/tasks/${encodeURIComponent(task.id)}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error(`Delete ${task.id} failed`);
+    }));
+    await loadTaskItems();
+    showToast(`${completed.length} completed tasks cleared`);
+  } catch (error) {
+    console.error(error);
+    await loadTaskItems();
+    showToast('Some tasks could not be cleared');
+  }
 }
 
 async function submitSearch() {
@@ -747,7 +886,7 @@ function openView(viewName) {
   const target = document.getElementById(`view-${normalized}`);
   if (target) target.classList.add('active');
 
-  document.querySelectorAll('.nav-item').forEach((item) => {
+  document.querySelectorAll('.nav-item, .mobile-nav-item').forEach((item) => {
     item.classList.toggle('active', item.dataset.view?.toLowerCase() === normalized);
   });
 
@@ -818,7 +957,7 @@ document.getElementById('closeAnswer').addEventListener('click', () => aiRespons
 document.getElementById('closeSearch').addEventListener('click', () => searchResults.classList.remove('show'));
 document.getElementById('clearEvents').addEventListener('click', () => { events.length = 0; renderEvents(); });
 
-document.querySelectorAll('.nav-item').forEach((button) => {
+document.querySelectorAll('.nav-item, .mobile-nav-item').forEach((button) => {
   button.addEventListener('click', () => openView(button.dataset.view));
 });
 

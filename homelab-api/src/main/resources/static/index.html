@@ -29,9 +29,17 @@
       <div class="sidebar-footer">
         <div class="mantra-line"></div>
         <p>A CLEARER<br>MIND.<br>A RICHER<br>LIFE.</p>
-        <small>v0.15.0</small>
+        <small>v0.16.0</small>
       </div>
     </aside>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <button class="mobile-nav-item active" data-view="Home" type="button"><span>⌂</span><b>Home</b></button>
+      <button class="mobile-nav-item" data-view="AI" type="button"><span>✣</span><b>AI</b></button>
+      <button class="mobile-nav-item" data-view="Tasks" type="button"><span>□</span><b>Tasks</b></button>
+      <button class="mobile-nav-item" data-view="HomeLab" type="button"><span>✺</span><b>HomeLab</b></button>
+      <button class="mobile-nav-item" data-view="Journey" type="button"><span>◉</span><b>Journey</b></button>
+    </nav>
 
     <section class="main-shell">
       <header class="topbar">
@@ -548,7 +556,7 @@
                   <button type="button" data-task-filter="done">Done</button>
                 </div>
                 <div class="tasks-toolbar-right">
-                  <span id="tasksDateHint">Dates stay local for now</span>
+                  <span id="tasksDateHint">PostgreSQL sync starting…</span>
                   <button id="clearCompletedTasks" class="tasks-clear" type="button">Clear completed</button>
                 </div>
               </div>
@@ -571,7 +579,7 @@
               <section class="tasks-surface tasks-hint-card">
                 <div class="tasks-card-head"><span>HOME AI</span><small>03</small></div>
                 <h3>Turn thoughts into actions.</h3>
-                <p>HOME AI will later create, reschedule and complete tasks through the backend. For now the planner can already use your current task list.</p>
+                <p>Your tasks now live in PostgreSQL and stay consistent across devices. Next, HOME AI will get tools to create, reschedule and complete them for you.</p>
                 <button id="tasksAskAi" type="button">Plan my tasks with HOME →</button>
               </section>
             </aside>
