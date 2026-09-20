@@ -1,32 +1,18 @@
-const DESIGN_W = 1586;
-const DESIGN_H = 992;
-const artboard = document.getElementById('artboard');
 const toast = document.getElementById('toast');
 const search = document.getElementById('search');
-const searchResults = document.getElementById('searchResults');
-const searchResultsBody = document.getElementById('searchResultsBody');
 const aiPrompt = document.getElementById('aiPrompt');
 const sendPrompt = document.getElementById('sendPrompt');
 const webToggle = document.getElementById('webToggle');
+const aiOrb = document.getElementById('aiOrb');
 const aiResponse = document.getElementById('aiResponse');
 const aiResponseBody = document.getElementById('aiResponseBody');
-const aiOrb = document.getElementById('aiOrb');
+const searchResults = document.getElementById('searchResults');
+const searchResultsBody = document.getElementById('searchResultsBody');
 const eventList = document.getElementById('eventList');
-
-const serviceState = {
-  api: false,
-  postgres: false,
-  ollama: false,
-  searxng: false
-};
 
 let toastTimer;
 let webEnabled = false;
-
-function fitArtboard() {
-  const scale = Math.min(window.innerWidth / DESIGN_W, window.innerHeight / DESIGN_H);
-  artboard.style.transform = `scale(${scale})`;
-}
+const serviceState = { api: false, postgres: false, ollama: false, searxng: false };
 
 function createConversationId() {
   if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
@@ -35,7 +21,7 @@ function createConversationId() {
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;
   const hex = [...bytes].map((b) => b.toString(16).padStart(2, '0'));
-  return [hex.slice(0, 4).join(''), hex.slice(4, 6).join(''), hex.slice(6, 8).join(''), hex.slice(8, 10).join(''), hex.slice(10, 16).join('')].join('-');
+  return [hex.slice(0,4).join(''), hex.slice(4,6).join(''), hex.slice(6,8).join(''), hex.slice(8,10).join(''), hex.slice(10,16).join('')].join('-');
 }
 
 const conversationId = createConversationId();
@@ -44,32 +30,42 @@ function showToast(message) {
   clearTimeout(toastTimer);
   toast.textContent = message;
   toast.classList.add('show');
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 1900);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
 }
 
 function updateClock() {
   const now = new Date();
-  const dateFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Warsaw', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-  const timeFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Warsaw', hour: '2-digit', minute: '2-digit', hour12: false });
+  const dateFmt = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Warsaw', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+  });
+  const timeFmt = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Warsaw', hour: '2-digit', minute: '2-digit', hour12: false
+  });
+  const hourFmt = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Warsaw', hour: '2-digit', hour12: false
+  });
+
   document.getElementById('topDate').textContent = dateFmt.format(now);
   document.getElementById('topTime').textContent = timeFmt.format(now);
-  const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Warsaw', hour: '2-digit', hour12: false }).format(now));
+  const hour = Number(hourFmt.format(now));
   document.getElementById('greeting').textContent = hour < 12 ? 'Good morning.' : hour < 18 ? 'Good afternoon.' : 'Good evening.';
 }
 
 function setService(name, online, label) {
   serviceState[name] = online;
   document.querySelectorAll(`[data-service="${name}"]`).forEach((dot) => dot.classList.toggle('live', online));
-  const map = {
+  const ids = {
     api: ['statusApi', 'serviceApiText'],
     postgres: ['statusPostgres', 'servicePostgresText'],
     ollama: ['statusOllama', 'serviceOllamaText'],
     searxng: ['statusSearxng', 'serviceSearchText']
-  };
-  (map[name] || []).forEach((id) => {
+  }[name] || [];
+
+  ids.forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.textContent = label || (online ? 'Running' : 'Standby');
   });
+
   if (name === 'ollama') {
     document.getElementById('runtimeStatus').textContent = label || (online ? 'Connected' : 'Standby');
   }
@@ -79,17 +75,15 @@ function setService(name, online, label) {
 function updateHealth() {
   const total = Object.keys(serviceState).length;
   const online = Object.values(serviceState).filter(Boolean).length;
+  const healthRing = document.getElementById('healthRing');
   document.getElementById('healthCount').textContent = `${online}/${total}`;
   document.getElementById('topHealthText').textContent = online === total ? 'All verified systems operational' : `${online} of ${total} systems verified`;
   const degrees = Math.round((online / total) * 360);
-  document.getElementById('healthRing').style.background = `conic-gradient(var(--green) ${degrees}deg, rgba(66,160,108,.18) ${degrees}deg)`;
+  healthRing.style.background = `conic-gradient(var(--green) ${degrees}deg, rgba(66,160,108,.18) ${degrees}deg)`;
 }
 
-function timeAgo(ts = Date.now()) {
-  const delta = Math.max(0, Date.now() - ts);
-  if (delta < 60_000) return 'now';
-  if (delta < 3_600_000) return `${Math.floor(delta / 60_000)} min ago`;
-  return `${Math.floor(delta / 3_600_000)} h ago`;
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, (char) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
 }
 
 const events = [];
@@ -97,6 +91,13 @@ function addEvent(text, type = 'success') {
   events.unshift({ text, type, time: Date.now() });
   events.splice(6);
   renderEvents();
+}
+
+function timeAgo(ts) {
+  const delta = Math.max(0, Date.now() - ts);
+  if (delta < 60_000) return 'now';
+  if (delta < 3_600_000) return `${Math.floor(delta / 60_000)} min ago`;
+  return `${Math.floor(delta / 3_600_000)} h ago`;
 }
 
 function renderEvents() {
@@ -114,10 +115,6 @@ function renderEvents() {
   `).join('');
 }
 
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
-}
-
 async function loadMemory() {
   try {
     const response = await fetch('/api/memory', { headers: { Accept: 'application/json' } });
@@ -125,6 +122,7 @@ async function loadMemory() {
     const memories = await response.json();
     setService('api', true, 'Running');
     setService('postgres', true, 'Running');
+
     const count = Array.isArray(memories) ? memories.length : 0;
     document.getElementById('memoryCount').textContent = `${count} ${count === 1 ? 'memory' : 'memories'}`;
     if (count) {
@@ -155,7 +153,9 @@ function restoreTasks() {
   const boxes = [...document.querySelectorAll('#taskList input[type="checkbox"]')];
   try {
     const saved = JSON.parse(localStorage.getItem('homeTasks'));
-    if (Array.isArray(saved) && saved.length === boxes.length) boxes.forEach((box, i) => { box.checked = Boolean(saved[i]); });
+    if (Array.isArray(saved) && saved.length === boxes.length) {
+      boxes.forEach((box, index) => { box.checked = Boolean(saved[index]); });
+    }
   } catch (_) {}
   boxes.forEach((box) => box.addEventListener('change', updateTasks));
   updateTasks();
@@ -164,8 +164,10 @@ function restoreTasks() {
 async function submitSearch() {
   const value = search.value.trim();
   if (!value) return;
+
   searchResultsBody.textContent = 'Searching…';
   searchResults.classList.add('show');
+
   try {
     const response = await fetch(`/api/search?q=${encodeURIComponent(value)}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -200,6 +202,7 @@ async function submitPrompt() {
       body: JSON.stringify({ message: outgoing, conversationId })
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
     const data = await response.json();
     aiResponseBody.textContent = data.response || 'No response.';
     setService('api', true, 'Running');
@@ -222,12 +225,16 @@ webToggle.addEventListener('click', () => {
   webEnabled = !webEnabled;
   webToggle.classList.toggle('active', webEnabled);
   webToggle.setAttribute('aria-pressed', String(webEnabled));
-  showToast(webEnabled ? 'WEB enabled for the next prompts' : 'WEB disabled · local mode');
+  showToast(webEnabled ? 'WEB enabled for next prompts' : 'WEB disabled · local mode');
 });
 
 search.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') submitSearch();
-  if (event.key === 'Escape') { search.value = ''; search.blur(); searchResults.classList.remove('show'); }
+  if (event.key === 'Escape') {
+    search.value = '';
+    search.blur();
+    searchResults.classList.remove('show');
+  }
 });
 
 aiPrompt.addEventListener('keydown', (event) => {
@@ -251,7 +258,7 @@ document.querySelectorAll('.nav-item').forEach((button) => {
 document.querySelectorAll('[data-service-action]').forEach((button) => {
   button.addEventListener('click', () => {
     const key = button.dataset.serviceAction;
-    showToast(`${button.querySelector('span:nth-child(2)').textContent}: ${serviceState[key] ? 'verified online' : 'not yet verified this session'}`);
+    showToast(`${button.querySelector('b').textContent}: ${serviceState[key] ? 'verified online' : 'not verified this session'}`);
   });
 });
 
@@ -263,10 +270,8 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-window.addEventListener('resize', fitArtboard);
 setInterval(updateClock, 15_000);
 setInterval(renderEvents, 30_000);
-fitArtboard();
 updateClock();
 restoreTasks();
 renderEvents();
