@@ -4,10 +4,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/tasks")
+@RequestMapping("/api/tasks")
 public class TaskController {
 
     private final TaskRepository taskRepository;
@@ -16,7 +17,12 @@ public class TaskController {
         this.taskRepository = taskRepository;
     }
 
-    public record TaskRequest(String title, Boolean completed) {
+    public record TaskRequest(
+            String title,
+            Boolean completed,
+            LocalDate dueDate,
+            TaskPriority priority
+    ) {
     }
 
     @GetMapping
@@ -25,10 +31,26 @@ public class TaskController {
     }
 
     @PostMapping
-    public Task createTask(@RequestBody TaskRequest request) {
+    public Task createTask(
+            @RequestBody TaskRequest request
+    ) {
         Task task = new Task();
-        task.setTitle(validateTitle(request.title()));
+
+        task.setTitle(
+                validateTitle(request.title())
+        );
+
         task.setCompleted(false);
+
+        task.setDueDate(
+                request.dueDate()
+        );
+
+        task.setPriority(
+                request.priority() != null
+                        ? request.priority()
+                        : TaskPriority.NORMAL
+        );
 
         return taskRepository.save(task);
     }
@@ -36,46 +58,69 @@ public class TaskController {
     @PutMapping("/{id}")
     public Task updateTask(
             @PathVariable Integer id,
-            @RequestBody TaskRequest request) {
-
+            @RequestBody TaskRequest request
+    ) {
         Task task = findTask(id);
-        task.setTitle(validateTitle(request.title()));
+
+        task.setTitle(
+                validateTitle(request.title())
+        );
 
         if (request.completed() != null) {
-            task.setCompleted(request.completed());
+            task.setCompleted(
+                    request.completed()
+            );
         }
+
+        task.setDueDate(
+                request.dueDate()
+        );
+
+        task.setPriority(
+                request.priority() != null
+                        ? request.priority()
+                        : TaskPriority.NORMAL
+        );
 
         return taskRepository.save(task);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTask(@PathVariable Integer id) {
+    public void deleteTask(
+            @PathVariable Integer id
+    ) {
         Task task = findTask(id);
+
         taskRepository.delete(task);
     }
 
     private Task findTask(Integer id) {
-        return taskRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Nie znaleziono zadania"
-                ));
+        return taskRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Task not found"
+                        )
+                );
     }
 
     private String validateTitle(String title) {
+
         if (title == null || title.isBlank()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Tytuł zadania nie może być pusty"
+                    "Task title cannot be empty"
             );
         }
 
-        String cleanedTitle = title.strip();
+        String cleanedTitle =
+                title.strip();
 
         if (cleanedTitle.length() > 255) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Tytuł zadania może mieć maksymalnie 255 znaków"
+                    "Task title cannot exceed 255 characters"
             );
         }
 
