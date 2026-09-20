@@ -77,7 +77,11 @@ function setService(name, online, label) {
     const runtimeStatus = document.getElementById('runtimeStatus');
     if (runtimeStatus) runtimeStatus.textContent = label || (online ? 'Connected' : 'Standby');
   }
+  document.querySelectorAll(`[data-system-service-label="${name}"]`).forEach((el) => {
+    el.textContent = label || (online ? 'Running' : 'Standby');
+  });
   updateHealth();
+  updateSystemWorkspace();
 }
 
 function updateHealth() {
@@ -321,9 +325,35 @@ function clearAiPageChat(showWelcome = true) {
   }
 }
 
+function updateSystemWorkspace() {
+  const count = Object.values(serviceState).filter(Boolean).length;
+  const total = Object.keys(serviceState).length;
+  const header = document.getElementById('systemVerifiedHeader');
+  const ringCount = document.getElementById('systemVerifiedCount');
+  const verified = document.getElementById('systemVerifiedLegend');
+  const standby = document.getElementById('systemStandbyLegend');
+  const ring = document.getElementById('systemRing');
+  if (header) header.textContent = `${count} / ${total}`;
+  if (ringCount) ringCount.textContent = `${count}/${total}`;
+  if (verified) verified.textContent = String(count);
+  if (standby) standby.textContent = String(total - count);
+  if (ring) {
+    const degrees = Math.round((count / total) * 360);
+    ring.style.background = `conic-gradient(#58e2a0 ${degrees}deg, rgba(52,137,99,.18) ${degrees}deg)`;
+  }
+}
+
+document.querySelectorAll('[data-system-tab]').forEach((button) => {
+  button.addEventListener('click', () => showToast(`${button.dataset.systemTab} view · next system iteration`));
+});
+
+document.querySelectorAll('[data-system-action]').forEach((button) => {
+  button.addEventListener('click', () => showToast(`${button.dataset.systemAction} · system tool coming next`));
+});
+
 function openView(viewName) {
   const normalized = String(viewName || '').toLowerCase();
-  const available = normalized === 'home' || normalized === 'ai';
+  const available = normalized === 'home' || normalized === 'ai' || normalized === 'system';
   if (!available) {
     showToast(`${viewName} · next module to design`);
     return;
@@ -339,6 +369,7 @@ function openView(viewName) {
 
   history.replaceState(null, '', normalized === 'home' ? location.pathname : `${location.pathname}#${normalized}`);
   if (normalized === 'ai') setTimeout(() => aiPagePrompt.focus(), 80);
+  if (normalized === 'system') updateSystemWorkspace();
 }
 
 webToggle.addEventListener('click', () => {
@@ -432,5 +463,6 @@ renderEvents();
 loadMemory();
 updateAiPageWebState(false);
 
-const initialView = location.hash.toLowerCase() === '#ai' ? 'AI' : 'Home';
+const hashView = location.hash.toLowerCase();
+const initialView = hashView === '#ai' ? 'AI' : hashView === '#system' ? 'System' : 'Home';
 openView(initialView);

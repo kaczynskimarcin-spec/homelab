@@ -362,6 +362,154 @@
           </div>
         </div>
       </section>
+
+      <section class="app-view system-page-view" id="view-system" aria-label="HomeLab system workspace">
+        <div class="system-page-atmosphere" aria-hidden="true">
+          <img src="assets/server-room.webp" alt="" />
+          <div></div>
+        </div>
+
+        <div class="system-page-shell">
+          <header class="system-page-header">
+            <div>
+              <div class="system-page-eyebrow"><span class="status-dot live"></span> HOME SYSTEM · PRIVATE INFRASTRUCTURE</div>
+              <h1>Infrastructure</h1>
+              <p>My personal HomeLab, services and connections.</p>
+            </div>
+            <div class="system-page-summary">
+              <div><span>SERVICES</span><strong>4 tracked</strong></div>
+              <div><span>VERIFIED</span><strong id="systemVerifiedHeader">0 / 4</strong></div>
+              <div><span>ACCESS</span><strong>Private</strong></div>
+            </div>
+          </header>
+
+          <section class="architecture-panel system-surface">
+            <div class="architecture-head">
+              <div>
+                <div class="system-section-title"><span class="system-glyph">⌘</span><strong>Architecture Map</strong></div>
+                <p>How the machines, containers, models and services connect.</p>
+              </div>
+              <div class="architecture-tabs" role="tablist" aria-label="System views">
+                <button class="active" type="button">Architecture</button>
+                <button type="button" data-system-tab="Services">Services</button>
+                <button type="button" data-system-tab="Network">Network</button>
+              </div>
+            </div>
+
+            <div class="architecture-canvas">
+              <svg class="architecture-lines" viewBox="0 0 1200 430" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="archCool" x1="0" x2="1"><stop stop-color="#5bd7f0" stop-opacity=".25"/><stop offset=".55" stop-color="#78e4fa" stop-opacity=".8"/><stop offset="1" stop-color="#5bd7f0" stop-opacity=".18"/></linearGradient>
+                  <filter id="archGlow"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+                <g fill="none" stroke="url(#archCool)" stroke-width="1.5" filter="url(#archGlow)">
+                  <path d="M210 148 C260 148 270 105 325 105"/>
+                  <path d="M210 195 C270 195 272 310 332 310"/>
+                  <path d="M470 105 C515 105 520 150 565 150"/>
+                  <path d="M715 150 C758 150 766 150 808 150"/>
+                  <path d="M950 150 C990 150 988 98 1034 98"/>
+                  <path d="M950 150 C995 150 995 212 1034 212"/>
+                  <path d="M470 310 C530 310 545 310 604 310"/>
+                  <path d="M754 310 C805 310 820 310 870 310"/>
+                </g>
+                <g fill="#7ce6f8" filter="url(#archGlow)">
+                  <circle cx="210" cy="148" r="3"/><circle cx="325" cy="105" r="3"/><circle cx="210" cy="195" r="3"/><circle cx="332" cy="310" r="3"/>
+                  <circle cx="470" cy="105" r="3"/><circle cx="565" cy="150" r="3"/><circle cx="715" cy="150" r="3"/><circle cx="808" cy="150" r="3"/>
+                  <circle cx="950" cy="150" r="3"/><circle cx="1034" cy="98" r="3"/><circle cx="1034" cy="212" r="3"/><circle cx="470" cy="310" r="3"/>
+                  <circle cx="604" cy="310" r="3"/><circle cx="754" cy="310" r="3"/><circle cx="870" cy="310" r="3"/>
+                </g>
+              </svg>
+
+              <article class="arch-node node-windows">
+                <div class="arch-node-head"><span class="arch-icon windows">⊞</span><div><b>Windows Host</b><small><i class="status-dot live"></i>Configured</small></div></div>
+                <dl><div><dt>OS</dt><dd>Windows 11</dd></div><div><dt>CPU</dt><dd>Ryzen 5 2600</dd></div><div><dt>GPU</dt><dd>RTX 2060 · 6 GB</dd></div></dl>
+                <footer><span>Primary host</span><span>192.168.56.1</span></footer>
+              </article>
+
+              <article class="arch-node node-vbox">
+                <div class="arch-node-head"><span class="arch-icon">◇</span><div><b>VirtualBox</b><small><i class="status-dot live"></i>1 VM</small></div></div>
+                <dl><div><dt>VM</dt><dd>Ubuntu Server</dd></div><div><dt>vCPU</dt><dd>2</dd></div><div><dt>RAM</dt><dd>3.3 GB</dd></div></dl>
+              </article>
+
+              <article class="arch-node node-ubuntu selected-node">
+                <div class="arch-node-head"><span class="arch-icon ubuntu">◉</span><div><b>Ubuntu Server</b><small><i class="status-dot live"></i>Configured</small></div></div>
+                <dl><div><dt>OS</dt><dd>Ubuntu 26.04.1 LTS</dd></div><div><dt>SSH</dt><dd>Active · 22</dd></div><div><dt>Host-only</dt><dd>192.168.56.101</dd></div></dl>
+              </article>
+
+              <article class="arch-node node-docker">
+                <div class="arch-node-head"><span class="arch-icon docker">▣</span><div><b>Docker / Compose</b><small><i class="status-dot live"></i>Running</small></div></div>
+                <dl><div><dt>Network</dt><dd>postgres_default</dd></div><div><dt>API</dt><dd>homelab-api</dd></div><div><dt>Search</dt><dd>homelab-searxng</dd></div></dl>
+              </article>
+
+              <button class="arch-node node-spring" data-service-action="api" type="button">
+                <div class="arch-node-head"><span class="arch-icon spring">S</span><div><b>Spring Boot API</b><small><i class="status-dot" data-service="api"></i><em data-system-service-label="api">Checking</em></small></div></div>
+                <dl><div><dt>Port</dt><dd>8080</dd></div><div><dt>Java</dt><dd>21</dd></div><div><dt>Memory</dt><dd>Connected</dd></div></dl>
+              </button>
+
+              <button class="arch-node node-postgres" data-service-action="postgres" type="button">
+                <div class="arch-node-head"><span class="arch-icon postgres">P</span><div><b>PostgreSQL</b><small><i class="status-dot" data-service="postgres"></i><em data-system-service-label="postgres">Checking</em></small></div></div>
+                <dl><div><dt>Version</dt><dd>18.6</dd></div><div><dt>Port</dt><dd>5432</dd></div><div><dt>DB</dt><dd>homelab</dd></div></dl>
+              </button>
+
+              <button class="arch-node node-ollama" data-service-action="ollama" type="button">
+                <div class="arch-node-head"><span class="arch-icon ollama">◌</span><div><b>Ollama</b><small><i class="status-dot" data-service="ollama"></i><em data-system-service-label="ollama">Standby</em></small></div></div>
+                <dl><div><dt>Endpoint</dt><dd>192.168.56.1:11434</dd></div><div><dt>GPU</dt><dd>RTX 2060</dd></div><div><dt>Mode</dt><dd>Host-only</dd></div></dl>
+              </button>
+
+              <article class="arch-node node-qwen qwen-node">
+                <div class="arch-node-head"><span class="arch-icon qwen">Q</span><div><b>Qwen Local Model</b><small><i class="status-dot live"></i>Loaded on demand</small></div></div>
+                <dl><div><dt>Model</dt><dd>Qwen 3.5 4B</dd></div><div><dt>Quant</dt><dd>Q4_K_M</dd></div><div><dt>Context</dt><dd>~4096</dd></div></dl>
+              </article>
+
+              <button class="arch-node node-searxng" data-service-action="searxng" type="button">
+                <div class="arch-node-head"><span class="arch-icon search">⌕</span><div><b>SearXNG</b><small><i class="status-dot" data-service="searxng"></i><em data-system-service-label="searxng">Standby</em></small></div></div>
+                <dl><div><dt>Port</dt><dd>8888 → 8080</dd></div><div><dt>API</dt><dd>JSON enabled</dd></div><div><dt>Scope</dt><dd>localhost</dd></div></dl>
+              </button>
+            </div>
+          </section>
+
+          <div class="system-bottom-grid">
+            <section class="system-surface system-summary-card">
+              <div class="system-card-title"><span>System Summary</span><small>01</small></div>
+              <div class="system-summary-body">
+                <div class="system-ring" id="systemRing"><strong id="systemVerifiedCount">0/4</strong><span>Verified</span></div>
+                <div class="summary-legend">
+                  <div><i class="status-dot live"></i><span>Verified this session</span><b id="systemVerifiedLegend">0</b></div>
+                  <div><i class="status-dot warn-dot"></i><span>Standby / not checked</span><b id="systemStandbyLegend">4</b></div>
+                  <div><i class="status-dot"></i><span>Tracked services</span><b>4</b></div>
+                </div>
+              </div>
+              <p class="system-note">Live health endpoints come next. For now HOME only marks services verified after a successful request.</p>
+            </section>
+
+            <section class="system-surface recent-system-events">
+              <div class="system-card-title"><span>Recent Events</span><small>02</small></div>
+              <div class="system-event-list" id="systemEventList">
+                <div><i class="status-dot live"></i><p><b>Memory layer connected</b><small>Long-term recall verified across conversations</small></p><time>today</time></div>
+                <div><i class="status-dot live"></i><p><b>SearXNG integrated</b><small>Local search backend available to HOME AI</small></p><time>today</time></div>
+                <div><i class="status-dot live"></i><p><b>AI workspace deployed</b><small>Full chat view is active</small></p><time>today</time></div>
+              </div>
+            </section>
+
+            <section class="system-surface selected-service-card">
+              <div class="system-card-title"><span>Selected Service</span><small>03</small></div>
+              <div class="selected-service-head"><span class="arch-icon ubuntu">◉</span><div><b>Ubuntu Server</b><small><i class="status-dot live"></i>Configured</small></div></div>
+              <dl><div><dt>Hostname</dt><dd>homelab</dd></div><div><dt>Host-only</dt><dd>192.168.56.101</dd></div><div><dt>SSH</dt><dd>Active</dd></div><div><dt>Role</dt><dd>Server VM</dd></div></dl>
+              <div class="selected-actions"><button type="button" data-system-action="Logs">View logs</button><button type="button" data-system-action="Terminal">Open terminal</button></div>
+            </section>
+
+            <section class="system-surface network-card">
+              <div class="system-card-title"><span>Network & Access</span><small>04</small></div>
+              <div class="network-list">
+                <div><span>◌</span><p><b>Tailscale</b><small>Private remote access</small></p><em>Connected</em></div>
+                <div><span>⌘</span><p><b>SSH · Ubuntu</b><small>192.168.56.101:22</small></p><em>Reachable</em></div>
+                <div><span>◉</span><p><b>Ollama</b><small>Host-only network</small></p><em>Private</em></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
     </section>
 
     <div class="search-results" id="searchResults" aria-live="polite">
