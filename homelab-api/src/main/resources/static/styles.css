@@ -1027,7 +1027,7 @@ button.arch-node { appearance:none; font:inherit; cursor:pointer; }
     bottom:0;
     height:68px;
     display:grid;
-    grid-template-columns:repeat(5,1fr);
+    grid-template-columns:repeat(4,1fr);
     padding:6px 6px max(6px, env(safe-area-inset-bottom));
     border-top:1px solid rgba(255,255,255,.08);
     background:rgba(6,11,13,.96);
