@@ -22,20 +22,20 @@ public class AiController {
     private static final ZoneId WARSAW =
             ZoneId.of("Europe/Warsaw");
 
-    private final OllamaService ollamaService;
+    private final AiOrchestrator aiOrchestrator;
     private final ChatMessageRepository chatMessageRepository;
     private final WebSearchService webSearchService;
     private final MemoryService memoryService;
     private final TaskService taskService;
 
     public AiController(
-            OllamaService ollamaService,
+            AiOrchestrator aiOrchestrator,
             ChatMessageRepository chatMessageRepository,
             WebSearchService webSearchService,
             MemoryService memoryService,
             TaskService taskService
     ) {
-        this.ollamaService = ollamaService;
+        this.aiOrchestrator = aiOrchestrator;
         this.chatMessageRepository = chatMessageRepository;
         this.webSearchService = webSearchService;
         this.memoryService = memoryService;
@@ -177,7 +177,7 @@ public class AiController {
         );
 
         String response =
-                ollamaService.chat(
+                aiOrchestrator.chat(
                         messageForModel,
                         history
                 );
