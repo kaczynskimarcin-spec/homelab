@@ -1,1 +1,24 @@
 .idea/
+
+# Local environment files and credentials
+.env
+.env.*
+!.env.example
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Local build artifacts and logs
+**/target/
+**/build/
+*.log
